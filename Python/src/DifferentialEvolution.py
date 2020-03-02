@@ -1,4 +1,4 @@
-from src.General import EndConditions as ec
+from OptimizationAlgorithms.Python.src.General  import EndConditions as ec
 import numpy as np
 
 
