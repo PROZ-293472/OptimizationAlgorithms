@@ -11,7 +11,7 @@ class Setup:
 
     @staticmethod
     def generate_starting_population(dim, bounds, filename):
-        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(50, dim))
+        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(10, dim))
         np.savetxt(filename, points, delimiter=',')
 
     @staticmethod
@@ -21,7 +21,7 @@ class Setup:
 
 class EndConditions:
 
-    MAX_ITER = 1000000
+    MAX_ITER = 1000
 
     @staticmethod
     def max_iter(i, max_i):

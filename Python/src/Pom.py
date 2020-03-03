@@ -1,13 +1,12 @@
-import  numpy as np
-from src import General as gn
+import numpy as np
+import OptimizationAlgorithms.Python.src.General as gen
+import OptimizationAlgorithms.Python.src.DifferentialEvolution as DE
+import OptimizationAlgorithms.Python.mats.TargetFunctions as TargetFunctions
 
-bounds = [2,30]
-dim = 2
+gen.Setup.generate_starting_population(dim=3, bounds=[0,3], filename='temp.csv')
 
-# points = np.random.uniform(low=bounds[0], high=bounds[1], size=(50, dim))
-# np.savetxt('temp.csv', points, delimiter=',')
-#
-# print(np.genfromtxt('temp.csv', delimiter=','))
+alg = DE.DifferentialEvolution(TargetFunctions.sum_of_squares,
+                               population_filename='temp.csv')
 
-gn.General.generate_starting_population(dim, bounds, 'temp2.csv')
-print(gn.General.read_staring_population('temp2.csv'))
+alg.run()
+print(alg.sel_best())
