@@ -1,12 +1,14 @@
 from OptimizationAlgorithms.Python.src.General  import EndConditions as ec
 from OptimizationAlgorithms.Python.src.General import Setup
 import numpy as np
+from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 
-class Algorithm:
+class Algorithm(ABC):
 
     def __init__(self, target_fun, start_pop=None, population_filename=None):
+        super().__init__()
         self.target_fun = target_fun  # FUNCTOR
 
         # You can either use directory to the csv or the numpy array itself
@@ -28,3 +30,11 @@ class Algorithm:
         # Get the indices of minimum element
         min_index = np.where(val_array == np.amin(val_array))
         return self.population[min_index[0][0]]  # minindex[0][0], because the value returned by np.where is a bit weird
+
+    @abstractmethod
+    def run(self):
+        pass
+
+    # @abstractmethod
+    # def dupa(self):
+    #     pass

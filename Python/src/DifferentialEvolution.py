@@ -43,8 +43,8 @@ class DifferentialEvolution(Algorithm):
         fig = plt.figure()
         ax = fig.add_subplot(111)
 
+        # MAIN LOOP
         while True:
-
             # CHECKING ENDING CONDITIONS
             end_conditions = ec.check_end_conditions(iteration=self.iterations,
                                                      vec1=prev_best, vec2=self.sel_best(),
@@ -57,12 +57,10 @@ class DifferentialEvolution(Algorithm):
 
             print(self.target_fun(self.sel_best()))
 
-            # DEBUG PURPOSES
+            # PLOTTING STUFF
             x = [self.population[i][0] for i in range(0, self.population.shape[0])]
             y = [self.population[i][1] for i in range(0, self.population.shape[0])]
-
             ax.scatter(x=x, y=y)
-
             fig.canvas.draw_idle()
             plt.pause(0.1)
 
