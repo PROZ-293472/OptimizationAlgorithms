@@ -11,7 +11,7 @@ class Setup:
 
     @staticmethod
     def generate_starting_population(dim, bounds, filename):
-        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(10, dim))
+        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(30, dim))
         np.savetxt(filename, points, delimiter=',')
 
     @staticmethod
@@ -21,7 +21,7 @@ class Setup:
 
 class EndConditions:
 
-    MAX_ITER = 1000
+    MAX_ITER = 300
 
     @staticmethod
     def max_iter(i, max_i):
@@ -34,5 +34,14 @@ class EndConditions:
     @staticmethod
     def check_end_conditions(iteration, max_iteration, val, min_val):
         return {'max_iter': EndConditions.max_iter(iteration, max_iteration),
-                'tolfun': EndConditions.tolfun(val, min_val)
-                }
+                'tolfun': EndConditions.tolfun(val, min_val)}
+
+
+class Selections:
+
+    @staticmethod
+    def tournament_selection(target_fun, x, y):
+        if target_fun(x) < target_fun(y):
+            return x
+        else:
+            return y
