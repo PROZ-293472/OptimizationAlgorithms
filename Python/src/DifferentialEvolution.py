@@ -18,7 +18,6 @@ class DifferentialEvolution(Algorithm):
         self.cr = cr  # FLOAT - parameter for crossover
         self.f = f  # FLOAT
 
-
     def crossover(self, x, y):
         z = np.empty(x.shape[0])
         for i in range(0, x.shape[0]):
@@ -44,16 +43,7 @@ class DifferentialEvolution(Algorithm):
         ax = fig.add_subplot(111)
 
         # MAIN LOOP
-        while True:
-            # CHECKING ENDING CONDITIONS
-            end_conditions = ec.check_end_conditions(iteration=self.iterations,
-                                                     vec1=prev_best, vec2=self.sel_best(),
-                                                     target_fun=self.target_fun)
-
-            if self.iterations != 0 and any(end_conditions.values()):
-                reason = next((i for i, j in enumerate(end_conditions.values()) if j), None)
-                self.end_reason = list(end_conditions.keys())[reason]
-                break
+        while not self.check_end_cond(prev_best):
 
             print(self.target_fun(self.sel_best()))
 

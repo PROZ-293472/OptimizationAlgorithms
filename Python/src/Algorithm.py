@@ -31,10 +31,19 @@ class Algorithm(ABC):
         min_index = np.where(val_array == np.amin(val_array))
         return self.population[min_index[0][0]]  # minindex[0][0], because the value returned by np.where is a bit weird
 
+    def check_end_cond(self, prev_best):
+        end_conditions = ec.check_end_conditions(iteration=self.iterations,
+                                                 vec1=prev_best, vec2=self.sel_best(),
+                                                 target_fun=self.target_fun)
+
+        if self.iterations != 0 and any(end_conditions.values()):
+            reason = next((i for i, j in enumerate(end_conditions.values()) if j), None)
+            self.end_reason = list(end_conditions.keys())[reason]
+            return True
+        else:
+            return False
+
     @abstractmethod
     def run(self):
         pass
 
-    # @abstractmethod
-    # def dupa(self):
-    #     pass
