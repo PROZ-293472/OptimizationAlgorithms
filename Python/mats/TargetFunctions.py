@@ -4,6 +4,7 @@ def sum_of_squares(point):
         sum += p**2
     return sum
 
+
 def rosenrock(points):
     x = points[0]
     y = points[1]

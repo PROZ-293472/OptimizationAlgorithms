@@ -12,3 +12,4 @@ alg = DE.DifferentialEvolution(TargetFunctions.sum_of_squares,
 
 alg.run()
 print(alg.sel_best())
+print(alg.end_reason)
