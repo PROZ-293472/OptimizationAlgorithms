@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 
 class Algorithm(ABC):
 
-    def __init__(self, target_fun, start_pop=None, population_filename=None):
+    def __init__(self, objective_fun, start_pop=None, population_filename=None):
         super().__init__()
-        self.target_fun = target_fun  # FUNCTOR
+        self.objective_fun = objective_fun  # FUNCTOR
 
         # You can either use directory to the csv or the numpy array itself
         if start_pop:
@@ -25,7 +25,7 @@ class Algorithm(ABC):
 
     def sel_best(self):
         # create an array of target function values
-        val_array = np.array([self.target_fun(i) for i in self.population])
+        val_array = np.array([self.objective_fun.eval(i) for i in self.population])
 
         # Get the indices of minimum element
         min_index = np.where(val_array == np.amin(val_array))
@@ -34,12 +34,13 @@ class Algorithm(ABC):
     def check_end_cond(self, prev_best):
         end_conditions = ec.check_end_conditions(iteration=self.iterations,
                                                  vec1=prev_best, vec2=self.sel_best(),
-                                                 target_fun=self.target_fun)
+                                                 obj_fun=self.objective_fun)
 
         if self.iterations != 0 and any(end_conditions.values()):
             reason = next((i for i, j in enumerate(end_conditions.values()) if j), None)
             self.end_reason = list(end_conditions.keys())[reason]
             return True
+
         else:
             return False
 

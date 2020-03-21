@@ -10,9 +10,9 @@ class DifferentialEvolution(Algorithm):
     DEFAULT_CR = 0.5
     DEFAULT_F = 0.8
 
-    def __init__(self, target_fun, start_pop=None, population_filename=None,
+    def __init__(self, objective_fun, start_pop=None, population_filename=None,
                  f=DEFAULT_F, cr=DEFAULT_CR):
-        Algorithm.__init__(self, target_fun, start_pop, population_filename)
+        Algorithm.__init__(self, objective_fun, start_pop, population_filename)
 
         self.H = start_pop  # NUMPY ARRAY OF VECTORS
         self.cr = cr  # FLOAT - parameter for crossover
@@ -29,30 +29,37 @@ class DifferentialEvolution(Algorithm):
         return z
 
     def tournament(self, x, y):
-        if self.target_fun(x) < self.target_fun(y):
+        res = self.objective_fun.compare(x, y)
+        if res > 0:
+            return y
+        elif res < 0:
             return x
         else:
-            return y
+            if np.random.random() >= 0.5:
+                return x
+            else:
+                return y
+
 
     def run(self):
         self.iterations = 0
         prev_best = self.sel_best()
 
-        plt.ion()
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        # plt.ion()
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111)
 
         # MAIN LOOP
         while not self.check_end_cond(prev_best):
 
-            print(self.target_fun(self.sel_best()))
+            print(self.objective_fun.eval(self.sel_best()))
 
-            # PLOTTING STUFF
-            x = [self.population[i][0] for i in range(0, self.population.shape[0])]
-            y = [self.population[i][1] for i in range(0, self.population.shape[0])]
-            ax.scatter(x=x, y=y)
-            fig.canvas.draw_idle()
-            plt.pause(0.1)
+            # # PLOTTING STUFF
+            # x = [self.population[i][0] for i in range(0, self.population.shape[0])]
+            # y = [self.population[i][1] for i in range(0, self.population.shape[0])]
+            # ax.scatter(x=x, y=y)
+            # fig.canvas.draw_idle()
+            # plt.pause(0.1)
 
             next_population = self.population
             for i in range(0, np.size(self.population, axis=0)):

@@ -10,8 +10,8 @@ class Setup:
                        'tolfun': lambda val, min_val: val <= min_val}
 
     @staticmethod
-    def generate_starting_population(dim, bounds, filename):
-        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(30, dim))
+    def generate_starting_population(pop_size, dim, bounds, filename):
+        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(pop_size, dim))
         np.savetxt(filename, points, delimiter=',')
 
     @staticmethod
@@ -21,7 +21,7 @@ class Setup:
 
 class EndConditions:
 
-    MAX_ITER = 100
+    MAX_ITER = 300
     TOL_X = 0.0000001
     TOL_FUN = 0.0000001
 
@@ -30,23 +30,17 @@ class EndConditions:
         return i >= EndConditions.MAX_ITER
 
     @staticmethod
-    def tol_fun(vec1, vec2, target_func):
-        dist = np.linalg.norm(target_func(vec1) - target_func(vec2))
-        val1_norm = np.linalg.norm(target_func(vec1))
-        # return dist <= EndConditions.TOL_FUN * (1 + val1_norm)  #TODO Coś nie działa
+    def tol_fun(vec1, vec2, objective_fun):
         return False
 
     @staticmethod
     def tol_x(vec1, vec2):
-        dist = np.linalg.norm(vec1-vec2)
-        vec1_norm = np.linalg.norm(vec1)
-        # return dist <= EndConditions.TOL_X * (1 + vec1_norm)  #TODO Coś nie działa
         return False
 
     @staticmethod
-    def check_end_conditions(iteration, vec1, vec2, target_fun):
+    def check_end_conditions(iteration, vec1, vec2, obj_fun):
         return {'max_iter': EndConditions.max_iter(iteration),
-                'tolfun': EndConditions.tol_fun(vec1=vec1, vec2=vec2, target_func=target_fun),
+                'tolfun': EndConditions.tol_fun(vec1=vec1, vec2=vec2, objective_fun=obj_fun),
                 'tolx': EndConditions.tol_x(vec1=vec1, vec2=vec2)}
 
 
