@@ -1,6 +1,5 @@
-import numpy as np
 import OptimizationAlgorithms.Python.src.General as gen
-import OptimizationAlgorithms.Python.src.DifferentialEvolution as DE
+import OptimizationAlgorithms.Python.src.algorithms.DifferentialEvolution as DE
 import OptimizationAlgorithms.Python.mats.TargetFunctions as TargetFunctions
 from OptimizationAlgorithms.Python.src.ObjectveFunction import ObjectiveFunction
 

@@ -1,8 +1,5 @@
-from OptimizationAlgorithms.Python.src.Algorithm import Algorithm
-from OptimizationAlgorithms.Python.src.General  import EndConditions as ec
-from OptimizationAlgorithms.Python.src.General import Setup
+from OptimizationAlgorithms.Python.src.algorithms.Algorithm import Algorithm
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class DifferentialEvolution(Algorithm):
