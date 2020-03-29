@@ -29,8 +29,13 @@ crossover <- function(x,y){
 }
 
 
-tournanemt <- function(x,y){
-  
+tournanemt <- function(x,y)
+{
+  cond <- sum_of_squares(x) > sum_of_squares(y)
+  if(cond) 
+    return(y)
+  else
+    return(x)
 }
 
 
@@ -48,6 +53,9 @@ while(t != 100)
     O <- crossover(r, M)
     append(H,O)
     
+    next_P[i,] <- tournanemt(P[i,], O)
   }
+  P <- next_P
+  t <- t+1
 }
 
