@@ -4,6 +4,8 @@ import numpy as np
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
+from OptimizationAlgorithms.Python.src.entities.Point import Point
+
 
 class Algorithm(ABC):
 
@@ -18,13 +20,20 @@ class Algorithm(ABC):
             self.population = Setup.read_staring_population(population_filename)  # READ NUMPY ARRAY FROM CSV
         else:  # Here is my cute defence mechanism for people, who didn't read a documentation
             self.population = np.random.uniform(size=(50, np.random.randint(low=1, high=10)))
+
+        # transform multi-d array into numpy array of points
+        temp = np.array(
+            [Point(coordinates=self.population[i], objective_fun=objective_fun) for i in range(len(self.population))]
+        )
+        self.population = temp
+
         self.eval_time = -1
         self.iterations = 0  # INT
         self.end_reason = None  # STRING
 
     def sel_best(self):
-        # create an array of target function values
-        val_array = np.array([self.objective_fun.eval(i) for i in self.population])
+        # create an array of objective function values
+        val_array = np.array([p.value for p in self.population])
 
         # Get the indices of minimum element
         min_index = np.where(val_array == np.amin(val_array))
@@ -42,6 +51,10 @@ class Algorithm(ABC):
 
         else:
             return False
+
+    def update_all_points(self):
+        for p in self.population:
+            p.update(self.objective_fun)
 
     @abstractmethod
     def run(self):

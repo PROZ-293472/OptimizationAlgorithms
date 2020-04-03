@@ -21,7 +21,7 @@ class Setup:
 
 class EndConditions:
 
-    MAX_ITER = 300
+    MAX_ITER = 400
     TOL_X = 0.0000001
     TOL_FUN = 0.0000001
 

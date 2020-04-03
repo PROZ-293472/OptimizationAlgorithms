@@ -1,6 +1,8 @@
 from OptimizationAlgorithms.Python.src.algorithms.Algorithm import Algorithm
 import numpy as np
 
+from OptimizationAlgorithms.Python.src.entities.Point import Point
+
 
 class DifferentialEvolution(Algorithm):
 
@@ -49,7 +51,8 @@ class DifferentialEvolution(Algorithm):
         # MAIN LOOP
         while not self.check_end_cond(prev_best):
 
-            print(self.objective_fun.eval(self.sel_best()))
+            self.update_all_points()
+            print(self.sel_best().value)
 
             # # PLOTTING STUFF
             # x = [self.population[i][0] for i in range(0, self.population.shape[0])]
@@ -61,16 +64,17 @@ class DifferentialEvolution(Algorithm):
             next_population = self.population
             for i in range(0, np.size(self.population, axis=0)):
 
-                # SELECTION - generates a random distinct 3 indexes from <0,mi> and picks corresponding vectors
+                # SELECTION - generates a random distinct 3 indexes from <0,mi> and picks corresponding points
                 indexes = np.random.choice(np.arange(self.population.shape[0]), 3, replace=False)
                 r = self.population[indexes[0]]
                 d_e = np.array([self.population[indexes[1]], self.population[indexes[2]]])
 
                 # MUTATION and CROSSOVER
-                M = r + self.f * (d_e[1] - d_e[0])
-                O = self.crossover(r, M)
+                M = r.coordinates + self.f * (d_e[1].coordinates - d_e[0].coordinates)
+                O = Point(self.crossover(r.coordinates, M))
+                O.update(self.objective_fun)
 
-                self.H = np.append(self.H, O)
+                self.H = np.append(self.H, O.coordinates)
 
                 next_population[i] = self.tournament(self.population[i], O)
 
