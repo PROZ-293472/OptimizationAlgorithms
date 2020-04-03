@@ -18,7 +18,6 @@ class Algorithm(ABC):
             self.population = Setup.read_staring_population(population_filename)  # READ NUMPY ARRAY FROM CSV
         else:  # Here is my cute defence mechanism for people, who didn't read a documentation
             self.population = np.random.uniform(size=(50, np.random.randint(low=1, high=10)))
-
         self.eval_time = -1
         self.iterations = 0  # INT
         self.end_reason = None  # STRING

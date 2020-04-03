@@ -1,7 +1,7 @@
 import OptimizationAlgorithms.Python.src.General as gen
 import OptimizationAlgorithms.Python.src.algorithms.DifferentialEvolution as DE
 import OptimizationAlgorithms.Python.mats.TargetFunctions as TargetFunctions
-from OptimizationAlgorithms.Python.src.ObjectveFunction import ObjectiveFunction
+from OptimizationAlgorithms.Python.src.entities.ObjectveFunction import ObjectiveFunction
 
 gen.Setup.generate_starting_population(pop_size=30, dim=3, bounds=[10,20], filename='temp.csv')
 
