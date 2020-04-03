@@ -51,7 +51,6 @@ class DifferentialEvolution(Algorithm):
         # MAIN LOOP
         while not self.check_end_cond(prev_best):
 
-            self.update_all_points()
             print(self.sel_best().value)
 
             # # PLOTTING STUFF
