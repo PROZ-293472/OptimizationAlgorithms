@@ -2,3 +2,4 @@ Python/.idea
 Python/resources
 R/R.Rproj
 R/.Rproj.user/
+*.pyc
