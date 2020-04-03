@@ -1,5 +1,5 @@
 Python/.idea
 Python/resources
 R/R.Rproj
-R/.Rproj.user/
-*.pyc
+R/.Rproj.user
+**/*.pyc
