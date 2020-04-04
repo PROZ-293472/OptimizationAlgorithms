@@ -1,14 +1,14 @@
 import OptimizationAlgorithms.Python.src.General as gen
 import OptimizationAlgorithms.Python.src.algorithms.DifferentialEvolution as DE
 import OptimizationAlgorithms.Python.mats.TargetFunctions as TargetFunctions
+from OptimizationAlgorithms.Python.src.algorithms.CMAES import CMAES
 from OptimizationAlgorithms.Python.src.entities.ObjectveFunction import ObjectiveFunction
 
 gen.Setup.generate_starting_population(pop_size=30, dim=3, bounds=[10,20], filename='temp.csv')
 
 of = ObjectiveFunction(fun=TargetFunctions.sum_of_squares, bounds=None)
 
-alg = DE.DifferentialEvolution(objective_fun=of,
-                               population_filename='temp.csv')
+alg = CMAES(objective_fun=of,  population_filename='temp.csv')
 
 alg.run()
 print(alg.sel_best())

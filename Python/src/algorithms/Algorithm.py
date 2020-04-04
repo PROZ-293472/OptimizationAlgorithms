@@ -21,6 +21,8 @@ class Algorithm(ABC):
         else:  # Here is my cute defence mechanism for people, who didn't read a documentation
             self.population = np.random.uniform(size=(50, np.random.randint(low=1, high=10)))
 
+        self.point_dim = self.population.shape[1]
+
         # transform multi-d array into numpy array of points
         temp = np.array(
             [Point(coordinates=self.population[i], objective_fun=objective_fun) for i in range(len(self.population))]
@@ -55,6 +57,10 @@ class Algorithm(ABC):
     def update_all_points(self):
         for p in self.population:
             p.update(self.objective_fun)
+
+    def get_population_mean(self):
+        pop_matrix = np.array([p.coordinates for p in self.population])
+        return pop_matrix.mean(axis=0)
 
     @abstractmethod
     def run(self):
