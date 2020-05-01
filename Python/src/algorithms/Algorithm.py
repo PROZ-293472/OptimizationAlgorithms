@@ -1,15 +1,15 @@
-from OptimizationAlgorithms.Python.src.General  import EndConditions as ec
-from OptimizationAlgorithms.Python.src.General import Setup
+from src.General  import EndConditions as ec
+from src.General import Setup
 import numpy as np
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
-from OptimizationAlgorithms.Python.src.entities.Point import Point
+from src.entities.Point import Point
 
 
 class Algorithm(ABC):
 
-    def __init__(self, objective_fun, start_pop=None, population_filename=None):
+    def __init__(self, objective_fun, start_pop=None, population_filename=None, plot_data=False):
         super().__init__()
         self.objective_fun = objective_fun  # FUNCTOR
 
@@ -32,6 +32,12 @@ class Algorithm(ABC):
         self.eval_time = -1
         self.iterations = 0  # INT
         self.end_reason = None  # STRING
+
+        # for plotting purposes
+        if plot_data:
+            plt.ion()
+            self.fig = plt.figure()
+            self.ax = self.fig.add_subplot(111)
 
     def sel_best(self):
         # create an array of objective function values
@@ -62,7 +68,18 @@ class Algorithm(ABC):
         pop_matrix = np.array([p.coordinates for p in self.population])
         return pop_matrix.mean(axis=0)
 
+    def plot_population(self):
+        if not hasattr(self, 'fig'):
+            return
+        assert self.point_dim == 2
+        x = [point.coordinates[0] for point in self.population]
+        y = [point.coordinates[1] for point in self.population]
+        self.ax.scatter(x=x, y=y)
+        self.fig.canvas.draw_idle()
+        plt.pause(0.5)
+
     @abstractmethod
     def run(self):
         pass
+
 

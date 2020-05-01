@@ -1,7 +1,8 @@
-from OptimizationAlgorithms.Python.src.algorithms.Algorithm import Algorithm
+from src.algorithms.Algorithm import Algorithm
 import numpy as np
+import matplotlib.pyplot as plt
 
-from OptimizationAlgorithms.Python.src.entities.Point import Point
+from src.entities.Point import Point
 
 
 class DifferentialEvolution(Algorithm):
@@ -9,9 +10,9 @@ class DifferentialEvolution(Algorithm):
     DEFAULT_CR = 0.5
     DEFAULT_F = 0.8
 
-    def __init__(self, objective_fun, start_pop=None, population_filename=None,
+    def __init__(self, objective_fun, start_pop=None, population_filename=None, plot_data=False,
                  f=DEFAULT_F, cr=DEFAULT_CR):
-        Algorithm.__init__(self, objective_fun, start_pop, population_filename)
+        Algorithm.__init__(self, objective_fun, start_pop, population_filename, plot_data)
 
         self.H = start_pop  # NUMPY ARRAY OF VECTORS
         self.cr = cr  # FLOAT - parameter for crossover
@@ -44,21 +45,11 @@ class DifferentialEvolution(Algorithm):
         self.iterations = 0
         prev_best = self.sel_best()
 
-        # plt.ion()
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111)
-
         # MAIN LOOP
         while not self.check_end_cond(prev_best):
 
             print(self.sel_best().value)
-
-            # # PLOTTING STUFF
-            # x = [self.population[i][0] for i in range(0, self.population.shape[0])]
-            # y = [self.population[i][1] for i in range(0, self.population.shape[0])]
-            # ax.scatter(x=x, y=y)
-            # fig.canvas.draw_idle()
-            # plt.pause(0.1)
+            self.plot_population()
 
             next_population = self.population
             for i in range(0, np.size(self.population, axis=0)):
