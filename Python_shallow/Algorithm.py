@@ -1,10 +1,10 @@
-from src.General import EndConditions as ec
-from src.General import Setup
+from General import EndConditions as ec
+from General import Setup
 import numpy as np
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
-from src.entities.Point import Point
+from Point import Point
 
 
 class Algorithm(ABC):
@@ -17,15 +17,18 @@ class Algorithm(ABC):
         if start_pop:
             self.population = start_pop  # NUMPY ARRAY OF VECTORS
         elif population_filename:
-            self.population = Setup.read_staring_population(population_filename)  # READ NUMPY ARRAY FROM CSV
+            self.population = Setup.read_staring_population(
+                population_filename)  # READ NUMPY ARRAY FROM CSV
         else:  # Here is my cute defence mechanism for people, who didn't read a documentation
-            self.population = np.random.uniform(size=(50, np.random.randint(low=1, high=10)))
+            self.population = np.random.uniform(
+                size=(50, np.random.randint(low=1, high=10)))
 
         self.point_dim = self.population.shape[1]
 
         # transform multi-d array into numpy array of points
         temp = np.array(
-            [Point(coordinates=self.population[i], objective_fun=objective_fun) for i in range(len(self.population))]
+            [Point(coordinates=self.population[i], objective_fun=objective_fun)
+             for i in range(len(self.population))]
         )
         self.population = temp
 
@@ -45,7 +48,8 @@ class Algorithm(ABC):
 
         # Get the indices of minimum element
         min_index = np.where(val_array == np.amin(val_array))
-        return self.population[min_index[0][0]]  # minindex[0][0], because the value returned by np.where is a bit weird
+        # minindex[0][0], because the value returned by np.where is a bit weird
+        return self.population[min_index[0][0]]
 
     def check_end_cond(self, prev_best):
         end_conditions = ec.check_end_conditions(iteration=self.iterations,
@@ -53,7 +57,8 @@ class Algorithm(ABC):
                                                  obj_fun=self.objective_fun)
 
         if self.iterations != 0 and any(end_conditions.values()):
-            reason = next((i for i, j in enumerate(end_conditions.values()) if j), None)
+            reason = next((i for i, j in enumerate(
+                end_conditions.values()) if j), None)
             self.end_reason = list(end_conditions.keys())[reason]
             return True
 
@@ -81,5 +86,3 @@ class Algorithm(ABC):
     @abstractmethod
     def run(self):
         pass
-
-

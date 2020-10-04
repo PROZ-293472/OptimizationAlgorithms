@@ -1,5 +1,5 @@
 
-P <- read.csv("C:\\Users\\Lenovo\\Desktop\\Studia\\INZYNIERKA\\OptimizationAlgorithms\\R\\src\\data.csv", header = FALSE)
+P <- read.csv("C:\\Users\\Lenovo\\Desktop\\Studia\\INZYNIERKA\\OptimizationAlgorithms\\R_shallow\\data.csv", header = FALSE)
 P <- as.matrix(P)
 H <- P
 mi <- dim(P)[1]

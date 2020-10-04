@@ -4,8 +4,8 @@ import scipy as sp
 import scipy.special
 import matplotlib.pyplot as plt
 
-from src.algorithms.Algorithm import Algorithm
-from src.entities.Point import Point
+from Algorithm import Algorithm
+from Point import Point
 
 # TODO: Przepatrz kod i porownaj z algorytmem, bo sigma dazy do nieskonczonosci
 
