@@ -9,7 +9,7 @@ from Point import Point
 
 class Algorithm(ABC):
 
-    def __init__(self, objective_fun, start_pop=None, population_filename=None, plot_data=False):
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False):
         super().__init__()
         self.objective_fun = objective_fun  # FUNCTOR
 
@@ -19,18 +19,21 @@ class Algorithm(ABC):
         elif population_filename:
             self.population = Setup.read_staring_population(
                 population_filename)  # READ NUMPY ARRAY FROM CSV
-        else:  # Here is my cute defence mechanism for people, who didn't read a documentation
-            self.population = np.random.uniform(
-                size=(50, np.random.randint(low=1, high=10)))
+        else:
+            self.population = None
 
-        self.point_dim = self.population.shape[1]
-
-        # transform multi-d array into numpy array of points
-        temp = np.array(
-            [Point(coordinates=self.population[i], objective_fun=objective_fun)
-             for i in range(len(self.population))]
-        )
-        self.population = temp
+        if self.population:
+            self.point_dim = self.population.shape[1]
+            # transform multi-d array into numpy array of points
+            temp = np.array(
+                [Point(coordinates=self.population[i], objective_fun=objective_fun)
+                 for i in range(len(self.population))]
+            )
+            self.population = temp
+        elif self.objective_fun:
+            self.point_dim = self.objective_fun.dim
+        else:
+            self.point_dim = None
 
         self.eval_time = -1
         self.iterations = 0  # INT
@@ -38,9 +41,42 @@ class Algorithm(ABC):
 
         # for plotting purposes
         if plot_data:
-            plt.ion()
-            self.fig = plt.figure()
-            self.ax = self.fig.add_subplot(111)
+            self.enable_plotting()
+
+    def is_initialized(self, valid_parameters=None):
+        if valid_parameters:
+            parameter_list = [p for key, p in enumerate(
+                self.__dict__.values()) if key in valid_parameters]
+        else:
+            parameter_list = self.__dict__.values()
+
+        for val in parameter_list:
+            if val is None:
+                return False
+        return True
+
+    def enable_plotting(self):
+        plt.ion()
+        setattr(self, 'fig', plt.figure())
+        setattr(self, 'ax', self.fig.add_subplot(111))
+
+    def set_obj_function(self, objective_fun):
+        self.objective_fun = objective_fun
+        self.point_dim = objective_fun.dim
+        if self.population and self.population.shape[1] != self.point_dim:
+            self.population = None
+
+    def set_parameters(self, parameter_dict):
+        for key in parameter_dict:
+            if key in self.__dict__.keys():
+                setattr(self, key, parameter_dict[key])
+
+    def gen_random_population(self, size=50, scaler=1):
+        generated = scaler * \
+            np.random.uniform(size=(size, np.random.randint(
+                low=self.point_dim, high=self.point_dim+1)))
+        self.population = np.array([Point(
+            coordinates=generated[i], objective_fun=self.objective_fun) for i in range(len(generated))])
 
     def sel_best(self):
         # create an array of objective function values

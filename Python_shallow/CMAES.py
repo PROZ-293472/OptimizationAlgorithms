@@ -1,117 +1,152 @@
 import math
 import numpy as np
-import scipy as sp
-import scipy.special
-import matplotlib.pyplot as plt
-
+from numpy import random
+import numpy.matlib as matlib
 from Algorithm import Algorithm
 from Point import Point
-
-# TODO: Przepatrz kod i porownaj z algorytmem, bo sigma dazy do nieskonczonosci
 
 
 class CMAES(Algorithm):
 
-    DEFAULT_SIGMA = 1
-    DEFAULT_LAMBDA = 50
-    DEFAULT_CC = 0.5
-    DEFAULT_DSIGM = 1
-    MAX_SIGMA = 1000000
+    DEFAULT_SIGMA = 0.3
 
-    def __init__(self, objective_fun, start_pop=None, population_filename=None, plot_data=False,
-                 sigma=DEFAULT_SIGMA, lmbd=DEFAULT_LAMBDA, cc=None, csigm=None, dsigm=DEFAULT_DSIGM,
-                 learning_rate_1=None, learning_rate_mu=None):
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False,
+                 sigma=DEFAULT_SIGMA, lbd=None, mean=None):
 
         Algorithm.__init__(self, objective_fun, start_pop,
                            population_filename, plot_data)
-        self.C = np.eye(N=self.point_dim, dtype=int)
+
         self.sigma = sigma
-        self.lmbd = lmbd
-        if not cc:
-            self.cc = 4 / self.point_dim
-        else:
-            self.cc = cc
+        self.m = mean
+        self.lbd = lbd
+        self.mu = None
+        self.weights = None
+        self.mu_w = None
+        self.cc = None
+        self.cs = None
+        self.c1 = None
+        self.cmu = None
+        self.d_s = None
+        self.chiN = None
+        if self.population and self.point_dim:
+            self.init_default_parameters()
 
-        if not csigm:
-            self.csigm = 3 / self.point_dim
-        else:
-            self.csigm = csigm
+    def init_default_parameters(self):
+        if not self.m:  # staring mean point
+            self.m = self.get_population_mean()
 
-        self.dsigm = dsigm
+        if not self.lbd:
+            self.lbd = len(self.population)
 
-        if not learning_rate_1:
-            self.learning_rate_1 = 2 / self.point_dim ** 2
-        else:
-            self.learning_rate_1 = learning_rate_1
+        mu = self.lbd/2   # offsprings number
+        if not self.mu:
+            self.mu = math.floor(mu)
 
-        if not learning_rate_mu:
-            self.learning_rate_mu = 4 / self.lmbd
-        else:
-            self.learning_rate_mu = learning_rate_mu
+        weights = math.log(mu + 1/2) - \
+            np.array([math.log(i)
+                      for i in range(1, self.mu)])  # initialized weights
+        if not self.weights:
+            self.weights = weights/np.sum(weights)  # weight normalised
 
-    def generate_di(self, lbd):
-        mean = np.zeros(self.point_dim)
-        di = np.random.multivariate_normal(mean, self.C, lbd)
-        # returns numpy array of vectors
-        return di
+        if not self.mu_w:
+            self.mu_w = np.sum(self.weights**2)**(-1)
+
+        if not self.cc:
+            self.cc = (4 + self.mu_w/self.point_dim) / \
+                (self.point_dim + 4 + 2*self.mu_w/self.point_dim)
+        if not self.cs:
+            self.cs = (self.mu_w + 2) / (self.point_dim + self.mu_w+5)
+        if not self.c1:
+            self.c1 = 2 / ((self.point_dim + 1.3)**2 + self.mu_w)
+        if not self.cmu:
+            self.cmu = min(1-self.c1, 2 * (self.mu_w-2 +
+                                           1/self.mu_w) / ((self.point_dim + 2)**2 + self.mu_w))
+        if not self.d_s:
+            self.d_s = 1 + 2 * \
+                max(0, math.sqrt((self.mu_w - 1)/(self.point_dim + 1)) - 1) + self.cs
+        if not self.chiN:
+            self.chiN = self.point_dim**0.5 * \
+                (1-1/(4*self.point_dim)+1/(21*self.point_dim**2))
+
+    def generate_population(self, C):
+        generated_pop = self.m + self.sigma * \
+            np.random.multivariate_normal(
+                np.zeros(self.point_dim), C, self.lbd)
+        points = np.array(
+            [Point(coordinates=i, objective_fun=self.objective_fun) for i in generated_pop])
+        return points
+
+    def sort_by_fitness(self, population):
+        fitnesses = np.array([p.value for p in population])
+        index_order = fitnesses.argsort()
+        pop_sorted = population[index_order[::1]]
+        return pop_sorted
+
+    def update_cov_matrix(self, C, pop_sorted_coordinates, pc, ps, flag_sigma):
+        artmp = (1/self.sigma) * \
+            (pop_sorted_coordinates.T[:, 0:self.mu-1] -
+             matlib.repmat(self.m, self.mu-1, 1).T)
+        try:
+            C = (1-self.c1-self.cmu) * C + self.c1*(pc @ pc.T + (1-flag_sigma)*self.cc *
+                                                    (2-self.cc)*C) + self.cmu * artmp @ np.diag(self.weights) @ artmp.T
+            self.sigma = self.sigma * \
+                math.exp((self.cs/self.d_s) *
+                         (np.linalg.norm(ps)/self.chiN - 1))
+            C = np.triu(C) + np.triu(C, 1).T
+            w, v = np.linalg.eig(C)
+            w = np.array([math.sqrt(d)**(-1) for d in w])
+            C_fact = v @ np.diag(w) @ v.T
+        except ZeroDivisionError:
+            C = np.eye(self.point_dim)
+            C_fact = np.eye(self.point_dim)
+        return C, C_fact
 
     def run(self):
+        assert self.point_dim is not None
+        if self.population is None:
+            self.gen_random_population()
+        if not self.is_initialized():
+            self.init_default_parameters()
+        print(self.__dict__)
+
+        self.iterations = 0
+        C = np.eye(self.point_dim)
+        C_fact = np.eye(self.point_dim)
+        pc = np.zeros(self.point_dim)
+        ps = np.zeros(self.point_dim)
         self.iterations = 0
         prev_best = self.sel_best()
-        p_c = np.zeros(self.point_dim)
-        p_sgm = np.zeros(self.point_dim)
-        m = self.get_population_mean()
-        # formula for the mean of the chi distribution ...idk
-        chi_mean = math.sqrt(2) * scipy.special.gamma((self.point_dim +
-                                                       1)/2) / scipy.special.gamma(self.point_dim/2)
 
-        # MAIN LOOP
-        while not self.check_end_cond(prev_best):
+        while not self.check_end_cond(prev_best=prev_best):
+
+            # GENERATE NEW POPULATION
+            self.population = self.generate_population(C)
 
             self.plot_population()
-            print(self.sel_best().value)
+            best_point = self.sel_best()
+            print(best_point.value)
 
-            di = self.generate_di(self.lmbd)
-            coords = m + self.sigma * di
-            qi = np.array(
-                [Point(coordinates=i, objective_fun=self.objective_fun) for i in coords])
-            qi_vals = np.array([q.value for q in qi])
+            # SORT BY FITNESS AND GET A COORDINATE MATRIX
+            pop_sorted = self.sort_by_fitness(self.population)
+            pop_sorted_coordinates = np.array(
+                [p.coordinates for p in pop_sorted])
 
-            # sort by qi_vals
-            index_order = qi_vals.argsort()
-            di = di[index_order[::1]]
+            # GET NEW MEAN OF POPULATION
+            new_m = pop_sorted_coordinates.T[:, 0:self.mu-1] @ self.weights
 
-            mi = math.floor(len(di) / 2)
-            d_t = (1/mi) * np.sum(di[0:mi], axis=0)
+            # UPDATE EVOLUTION PATHS
+            ps = (1-self.cs)*ps + math.sqrt(self.cs*(2-self.cs) *
+                                            self.mu_w) * C_fact @ (new_m-self.m) / self.sigma
+            HIGH_SIGMA = np.linalg.norm(
+                ps)/math.sqrt(1-(1-self.cs)**(2*self.iterations/self.lbd))/self.chiN < 1.4 + 2/(self.point_dim+1)
+            pc = (1-self.cc)*pc + HIGH_SIGMA * math.sqrt(self.cc *
+                                                         (2-self.cc)*self.mu_w) * (new_m-self.m) / self.sigma
 
-            next_m = m + self.sigma * d_t
-            fact_C = sp.linalg.sqrtm(np.linalg.inv(self.C))
-            next_p_sgm = (1 - self.csigm)*p_sgm + fact_C * \
-                math.sqrt(1 - (1 - self.csigm)**2) * math.sqrt(mi)*d_t
-            next_p_c = (1-self.cc)*p_c + math.sqrt(1 -
-                                                   (1 - self.cc)**2) * math.sqrt(mi)*d_t
+            # UPDATE COVARIANCE MATRIX
+            C, C_fact = self.update_cov_matrix(
+                C, pop_sorted_coordinates, pc, ps, HIGH_SIGMA)
 
-            try:
-                next_sigma = self.sigma * \
-                    math.exp(self.csigm/self.dsigm *
-                             (np.linalg.norm(p_sgm)/chi_mean - 1))
-                if next_sigma > CMAES.MAX_SIGMA:
-                    next_sigma = CMAES.MAX_SIGMA
-            except OverflowError:
-                next_sigma = CMAES.MAX_SIGMA
-
-            d_sum = 0
-            for i in range(mi):
-                d_sum += di[i] * np.transpose(di[i])
-
-            next_C = (1 - self.learning_rate_1 - self.learning_rate_mu)*self.C + \
-                self.learning_rate_1 * next_p_c * \
-                np.transpose(next_p_c) + self.learning_rate_mu * d_sum
-
-            self.sigma = next_sigma
-            self.population = qi
-            self.C = next_C
-            p_c = next_p_c
-            p_sgm = next_p_sgm
+            # ASSIGN NEW VALUES TO SOME PARAMETERS
+            self.m = new_m
+            prev_best = best_point
             self.iterations += 1
-            m = next_m

@@ -1,5 +1,6 @@
 from Algorithm import Algorithm
 import numpy as np
+from numpy.random import random
 import matplotlib.pyplot as plt
 
 from Point import Point
@@ -10,7 +11,7 @@ class DifferentialEvolution(Algorithm):
     DEFAULT_CR = 0.5
     DEFAULT_F = 0.8
 
-    def __init__(self, objective_fun, start_pop=None, population_filename=None, plot_data=False,
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False,
                  f=DEFAULT_F, cr=DEFAULT_CR):
         Algorithm.__init__(self, objective_fun, start_pop,
                            population_filename, plot_data)
@@ -22,7 +23,7 @@ class DifferentialEvolution(Algorithm):
     def crossover(self, x, y):
         z = np.empty(x.shape[0])
         for i in range(0, x.shape[0]):
-            a = np.random.random()
+            a = random()
             if a < self.cr:
                 z[i] = y[i]
             else:
@@ -36,15 +37,16 @@ class DifferentialEvolution(Algorithm):
         elif res < 0:
             return x
         else:
-            if np.random.random() >= 0.5:
+            if random() >= 0.5:
                 return x
             else:
                 return y
 
     def run(self):
         self.iterations = 0
+        if not self.is_initialized():
+            self.gen_random_population()
         prev_best = self.sel_best()
-
         # MAIN LOOP
         while not self.check_end_cond(prev_best):
 

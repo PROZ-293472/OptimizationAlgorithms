@@ -1,9 +1,11 @@
 
 class ObjectiveFunction:
 
-    def __init__(self, fun, bounds):
-        self.bounds = bounds  # 2D array. bounds[i][0] contains upper bound, bounds[i][1] - lower
+    def __init__(self, fun, dim, bounds):
+        # 2D array. bounds[i][0] contains upper bound, bounds[i][1] - lower
+        self.bounds = bounds
         self.fun = fun
+        self.dim = dim
 
     def eval(self, x):
         # x - vector
