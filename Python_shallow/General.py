@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 
 class Setup:
@@ -11,7 +12,8 @@ class Setup:
 
     @staticmethod
     def generate_starting_population(pop_size, dim, bounds, filename):
-        points = np.random.uniform(low=bounds[0], high=bounds[1], size=(pop_size, dim))
+        points = np.random.uniform(
+            low=bounds[0], high=bounds[1], size=(pop_size, dim))
         np.savetxt(filename, points, delimiter=',')
 
     @staticmethod
@@ -52,3 +54,12 @@ class Selections:
             return x
         else:
             return y
+
+
+class Utils:
+
+    @staticmethod
+    def time_evaluation(function, **kwargs):
+        start_time = time.time()
+        function(**kwargs)
+        return time.time() - start_time

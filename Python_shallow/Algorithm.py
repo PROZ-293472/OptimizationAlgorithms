@@ -1,15 +1,19 @@
-from General import EndConditions as ec
-from General import Setup
+import time
 import numpy as np
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
+from collections import namedtuple
 
+from General import EndConditions as ec
+from General import Setup
 from Point import Point
 
 
 class Algorithm(ABC):
+    Result = namedtuple(
+        'Result', ['best_point', 'end_reason', 'mean_iteration_time'])
 
-    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False):
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False):
         super().__init__()
         self.objective_fun = objective_fun  # FUNCTOR
 
@@ -118,6 +122,15 @@ class Algorithm(ABC):
         self.ax.scatter(x=x, y=y)
         self.fig.canvas.draw_idle()
         plt.pause(0.5)
+
+    def evaluate_single_iteration_with_time(self, *args):
+        start_time = time.time()
+        out = self.single_iteration(*args)
+        return {'data': out, 'time': time.time() - start_time}
+
+    @abstractmethod
+    def single_iteration(self):
+        pass
 
     @abstractmethod
     def run(self):

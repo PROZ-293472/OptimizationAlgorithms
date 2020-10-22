@@ -10,11 +10,11 @@ class CMAES(Algorithm):
 
     DEFAULT_SIGMA = 0.3
 
-    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False,
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False,
                  sigma=DEFAULT_SIGMA, lbd=None, mean=None):
 
         Algorithm.__init__(self, objective_fun, start_pop,
-                           population_filename, plot_data)
+                           population_filename, plot_data, time_eval)
 
         self.sigma = sigma
         self.m = mean
@@ -101,13 +101,46 @@ class CMAES(Algorithm):
             C_fact = np.eye(self.point_dim)
         return C, C_fact
 
+    def single_iteration(self, C, C_fact, pc, ps, prev_best):
+        # GENERATE NEW POPULATION
+        self.population = self.generate_population(C)
+
+        self.plot_population()
+        best_point = self.sel_best()
+        print(best_point.value)
+
+        # SORT BY FITNESS AND GET A COORDINATE MATRIX
+        pop_sorted = self.sort_by_fitness(self.population)
+        pop_sorted_coordinates = np.array(
+            [p.coordinates for p in pop_sorted])
+
+        # GET NEW MEAN OF POPULATION
+        new_m = pop_sorted_coordinates.T[:, 0:self.mu-1] @ self.weights
+
+        # UPDATE EVOLUTION PATHS
+        ps = (1-self.cs)*ps + math.sqrt(self.cs*(2-self.cs) *
+                                        self.mu_w) * C_fact @ (new_m-self.m) / self.sigma
+        HIGH_SIGMA = np.linalg.norm(
+            ps)/math.sqrt(1-(1-self.cs)**(2*self.iterations/self.lbd))/self.chiN < 1.4 + 2/(self.point_dim+1)
+        pc = (1-self.cc)*pc + HIGH_SIGMA * math.sqrt(self.cc *
+                                                     (2-self.cc)*self.mu_w) * (new_m-self.m) / self.sigma
+
+        # UPDATE COVARIANCE MATRIX
+        C, C_fact = self.update_cov_matrix(
+            C, pop_sorted_coordinates, pc, ps, HIGH_SIGMA)
+
+        # ASSIGN NEW VALUES TO SOME PARAMETERS
+        self.m = new_m
+        prev_best = best_point
+        self.iterations += 1
+        return C, C_fact, pc, ps, prev_best
+
     def run(self):
         assert self.point_dim is not None
         if self.population is None:
             self.gen_random_population()
         if not self.is_initialized():
             self.init_default_parameters()
-        print(self.__dict__)
 
         self.iterations = 0
         C = np.eye(self.point_dim)
@@ -117,36 +150,18 @@ class CMAES(Algorithm):
         self.iterations = 0
         prev_best = self.sel_best()
 
+        mean_time = 0 if self.time_eval else None
+
         while not self.check_end_cond(prev_best=prev_best):
+            if self.time_eval:
+                payload = self.evaluate_single_iteration_with_time(
+                    C, C_fact, pc, ps, prev_best)
+                C, C_fact, pc, ps, prev_best = payload['data']
+                mean_time += payload['time']
+            else:
+                C, C_fact, pc, ps, prev_best = self.single_iteration(
+                    C, C_fact, pc, ps, prev_best)
 
-            # GENERATE NEW POPULATION
-            self.population = self.generate_population(C)
-
-            self.plot_population()
-            best_point = self.sel_best()
-            print(best_point.value)
-
-            # SORT BY FITNESS AND GET A COORDINATE MATRIX
-            pop_sorted = self.sort_by_fitness(self.population)
-            pop_sorted_coordinates = np.array(
-                [p.coordinates for p in pop_sorted])
-
-            # GET NEW MEAN OF POPULATION
-            new_m = pop_sorted_coordinates.T[:, 0:self.mu-1] @ self.weights
-
-            # UPDATE EVOLUTION PATHS
-            ps = (1-self.cs)*ps + math.sqrt(self.cs*(2-self.cs) *
-                                            self.mu_w) * C_fact @ (new_m-self.m) / self.sigma
-            HIGH_SIGMA = np.linalg.norm(
-                ps)/math.sqrt(1-(1-self.cs)**(2*self.iterations/self.lbd))/self.chiN < 1.4 + 2/(self.point_dim+1)
-            pc = (1-self.cc)*pc + HIGH_SIGMA * math.sqrt(self.cc *
-                                                         (2-self.cc)*self.mu_w) * (new_m-self.m) / self.sigma
-
-            # UPDATE COVARIANCE MATRIX
-            C, C_fact = self.update_cov_matrix(
-                C, pop_sorted_coordinates, pc, ps, HIGH_SIGMA)
-
-            # ASSIGN NEW VALUES TO SOME PARAMETERS
-            self.m = new_m
-            prev_best = best_point
-            self.iterations += 1
+        if mean_time is not None:
+            mean_time = mean_time/self.iterations
+        return Algorithm.Result(best_point=prev_best, end_reason=self.end_reason, mean_iteration_time=mean_time)
