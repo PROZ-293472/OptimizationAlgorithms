@@ -50,7 +50,7 @@ DifferentialEvolution <- setRefClass(
             H <<- population
             mi <- dim(population)[1]
             iterations <<- 0
-            while(iterations < 200){
+            while(iterations < max_iter){
                 next_P <- population
                 for (i in 1:mi){
                     indexes <- sample(1:mi, 3, replace=F)

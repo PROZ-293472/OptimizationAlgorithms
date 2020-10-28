@@ -3,7 +3,7 @@ from DifferentialEvolution import DifferentialEvolution
 from ObjectveFunction import ObjectiveFunction
 
 
-def optimize(objective_function, problem_dimention, constraints=None, algorithm='cmaes', constraint_handle=None, parameter_dict=None, plot_data=False, time_eval=False):
+def optimize(objective_function, problem_dimention, constraints=None, algorithm='cmaes', constraint_handle=None, parameter_dict=None, plot_data=False, time_eval=False, max_iter=None):
     algorithms = {
         'cmaes': CMAES(),
         'de': DifferentialEvolution()
@@ -21,6 +21,8 @@ def optimize(objective_function, problem_dimention, constraints=None, algorithm=
     if parameter_dict:
         alg.set_parameters(parameter_dict)
 
+    if max_iter:
+        alg.max_iter = max_iter
     res = alg.run()
     return res
 
@@ -29,5 +31,5 @@ if __name__ == "__main__":
     import TargetFunctions
     parameters = {'m': (100, 20000)}
     res = optimize(objective_function=TargetFunctions.sphere,
-                   problem_dimention=2, plot_data=True, parameter_dict=parameters, algorithm='de', time_eval=True)
+                   problem_dimention=2, plot_data=False, parameter_dict=parameters, algorithm='cmaes', time_eval=True, max_iter=1000)
     print(res)

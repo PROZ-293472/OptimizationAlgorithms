@@ -87,8 +87,10 @@ CMAES <- setRefClass(
             # invsqrtC <- B %*% diag(D^(-1)) %*% t(B)   
             C <- eye(point_dim)
             invsqrtC <- eye(point_dim)
+            mean_time <- 0
+            while(iterations < max_iter){
+                start_time <- Sys.time()
 
-            while(iterations < 200){
                 generate_population(C)
                 pop_sorted <- sort_by_fitness()
 #                 print(pop_sorted)
@@ -101,7 +103,8 @@ CMAES <- setRefClass(
                 C <- (1-c1-cmu) * C + c1*(pc%*%t(pc) + (1-HIGH_SIGMA)*cc*(2-cc)*C) + cmu * artmp %*% diag(weights) %*% t(artmp)
                 sigma <<- sigma * exp((cs/d_s)*(norm(ps)/chiN - 1))
                 
-                print(objective_fun$evaluate(sel_best()))
+                best_point <- objective_fun$evaluate(sel_best())
+                print(best_point)
 #                 print(sel_best())
                     
                 C_upper <- C
@@ -118,7 +121,12 @@ CMAES <- setRefClass(
                 invsqrtC <- B %*% diag(D^-1) %*% t(B)
                 m <<- c(new_m)
                 iterations <<- iterations+1
+
+                mean_time <- mean_time + (Sys.time() - start_time)
             }
+            mean_time <- mean_time/iterations
+            mean_time <- as.numeric(mean_time, units="secs")
+            return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time))
         }
     )
 )

@@ -94,7 +94,13 @@ class CMAES(Algorithm):
                          (np.linalg.norm(ps)/self.chiN - 1))
             C = np.triu(C) + np.triu(C, 1).T
             w, v = np.linalg.eig(C)
-            w = np.array([math.sqrt(d)**(-1) for d in w])
+            temp = []
+            for d in w:
+                if d < 0:
+                    temp.append(0)
+                else:
+                    temp.append(math.sqrt(d)**(-1))
+            w = np.array(temp)
             C_fact = v @ np.diag(w) @ v.T
         except ZeroDivisionError:
             C = np.eye(self.point_dim)
@@ -107,7 +113,7 @@ class CMAES(Algorithm):
 
         self.plot_population()
         best_point = self.sel_best()
-        print(best_point.value)
+        # print(best_point.value)
 
         # SORT BY FITNESS AND GET A COORDINATE MATRIX
         pop_sorted = self.sort_by_fitness(self.population)
@@ -153,14 +159,17 @@ class CMAES(Algorithm):
         mean_time = 0 if self.time_eval else None
 
         while not self.check_end_cond(prev_best=prev_best):
-            if self.time_eval:
-                payload = self.evaluate_single_iteration_with_time(
-                    C, C_fact, pc, ps, prev_best)
-                C, C_fact, pc, ps, prev_best = payload['data']
-                mean_time += payload['time']
-            else:
-                C, C_fact, pc, ps, prev_best = self.single_iteration(
-                    C, C_fact, pc, ps, prev_best)
+            try:
+                if self.time_eval:
+                    payload = self.evaluate_single_iteration_with_time(
+                        C, C_fact, pc, ps, prev_best)
+                    C, C_fact, pc, ps, prev_best = payload['data']
+                    mean_time += payload['time']
+                else:
+                    C, C_fact, pc, ps, prev_best = self.single_iteration(
+                        C, C_fact, pc, ps, prev_best)
+            except ArithmeticError:
+                break
 
         if mean_time is not None:
             mean_time = mean_time/self.iterations

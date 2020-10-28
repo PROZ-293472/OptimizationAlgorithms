@@ -1,0 +1,1 @@
+is_empty <- function(x) return(length(x) ==0 )

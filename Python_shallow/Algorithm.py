@@ -13,7 +13,7 @@ class Algorithm(ABC):
     Result = namedtuple(
         'Result', ['best_point', 'end_reason', 'mean_iteration_time'])
 
-    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False):
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False, max_iter=ec.MAX_ITER):
         super().__init__()
         self.objective_fun = objective_fun  # FUNCTOR
 
@@ -41,6 +41,7 @@ class Algorithm(ABC):
 
         self.eval_time = -1
         self.iterations = 0  # INT
+        self.max_iter = max_iter
         self.end_reason = None  # STRING
 
         # for plotting purposes
@@ -94,7 +95,7 @@ class Algorithm(ABC):
     def check_end_cond(self, prev_best):
         end_conditions = ec.check_end_conditions(iteration=self.iterations,
                                                  vec1=prev_best, vec2=self.sel_best(),
-                                                 obj_fun=self.objective_fun)
+                                                 obj_fun=self.objective_fun, max_iter=self.max_iter)
 
         if self.iterations != 0 and any(end_conditions.values()):
             reason = next((i for i, j in enumerate(

@@ -28,8 +28,8 @@ class EndConditions:
     TOL_FUN = 0.0000001
 
     @staticmethod
-    def max_iter(i):
-        return i >= EndConditions.MAX_ITER
+    def max_iter(i, max_iter):
+        return i >= max_iter
 
     @staticmethod
     def tol_fun(vec1, vec2, objective_fun):
@@ -40,8 +40,8 @@ class EndConditions:
         return False
 
     @staticmethod
-    def check_end_conditions(iteration, vec1, vec2, obj_fun):
-        return {'max_iter': EndConditions.max_iter(iteration),
+    def check_end_conditions(iteration, vec1, vec2, obj_fun, max_iter):
+        return {'max_iter': EndConditions.max_iter(iteration, max_iter),
                 'tolfun': EndConditions.tol_fun(vec1=vec1, vec2=vec2, objective_fun=obj_fun),
                 'tolx': EndConditions.tol_x(vec1=vec1, vec2=vec2)}
 

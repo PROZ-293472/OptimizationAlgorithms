@@ -52,7 +52,8 @@ Algorithm <- setRefClass("Algorithm",
        point_dim = "numeric",
        population = "data.frame",
        iterations = "numeric",
-       plot_data = 'logical'  
+       plot_data = 'logical' ,
+       max_iter = "numeric" 
     ),
 
     methods = list(
@@ -76,3 +77,4 @@ Algorithm <- setRefClass("Algorithm",
     )
 )
 
+setClass("Result", slots=list(best_point="numeric", end_reason="character", mean_iteration_time="numeric"))
