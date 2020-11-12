@@ -104,7 +104,7 @@ CMAES <- setRefClass(
                 sigma <<- sigma * exp((cs/d_s)*(norm(ps)/chiN - 1))
                 
                 best_point <- objective_fun$evaluate(sel_best())
-                print(best_point)
+                # print(best_point)
 #                 print(sel_best())
                     
                 C_upper <- C

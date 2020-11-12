@@ -80,8 +80,11 @@ class Algorithm(ABC):
         generated = scaler * \
             np.random.uniform(size=(size, np.random.randint(
                 low=self.point_dim, high=self.point_dim+1)))
-        self.population = np.array([Point(
+        raw_population = np.array([Point(
             coordinates=generated[i], objective_fun=self.objective_fun) for i in range(len(generated))])
+
+        if self.objective_fun.bounds:
+            self.population = self.objective_fun.repair_points(raw_population)
 
     def sel_best(self):
         # create an array of objective function values

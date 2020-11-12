@@ -9,10 +9,11 @@ tf = TargetFunctions.sphere
 
 results = []
 times_netto = {}
-for dim in range(5, 40, 5):
+for dim in range(5, 70, 5):
     # calculating fitness of random points
     rand_points_times = []
-    max_iter = int(max(1e5, dim*1e4))
+    # max_iter = int(max(1e5, dim*1e4))
+    max_iter = 200
     for i in range(max_iter):
         point = np.random.uniform(low=area[0], high=area[1], size=(dim,))
         start_time = time.time()

@@ -2,22 +2,25 @@ ObjectiveFunction <- setRefClass("ObjectiveFunction",
     fields = list(
         fun = "function",
         dim = "numeric",
-        bounds= "numeric"),
+        bounds= "numeric",
+        repair_method = "character"),
     methods = list(
         evaluate = function(x){
             return(fun(x))
         },
-        compare = function(x,y){
-            if(x$value > y$value){
-                return(1)
-            }else if(x$value < y$value){
-                return(-1)
-            }else{
-                return(0)
-            }
-        },
+        # compare = function(x,y){
+        #     if(x$value > y){
+        #         return(1)
+        #     }else if(x$value < y$value){
+        #         return(-1)
+        #     }else{
+        #         return(0)
+        #     }
+        # },
         check_bounds = function(x){
+
         }
+
     )
 )
 
@@ -61,7 +64,7 @@ Algorithm <- setRefClass("Algorithm",
             coordinates <- scaler * replicate(size, runif(n = point_dim, min = -1, max = 1))
             fitness <- c()
             for(i in 1:dim(coordinates)[2]){
-                fitness[i]<-of$evaluate(coordinates[,i])
+                fitness[i]<-objective_fun$evaluate(coordinates[,i])
             }
             population <<- data.frame(t(coordinates), fitness)
         },

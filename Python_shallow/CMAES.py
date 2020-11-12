@@ -74,12 +74,17 @@ class CMAES(Algorithm):
                 np.zeros(self.point_dim), C, self.lbd)
         points = np.array(
             [Point(coordinates=i, objective_fun=self.objective_fun) for i in generated_pop])
-        return points
+        if self.objective_fun.bounds:
+            points_repaired = self.objective_fun.repair_points(points)
+        # print(points == points_repaired)
+        # print(len(points))
+        # print(len(points_repaired))
+        return points_repaired
 
     def sort_by_fitness(self, population):
         fitnesses = np.array([p.value for p in population])
-        index_order = fitnesses.argsort()
-        pop_sorted = population[index_order[::1]]
+        index_order = [int(i) for i in fitnesses.argsort()]
+        pop_sorted = [population[i] for i in index_order]
         return pop_sorted
 
     def update_cov_matrix(self, C, pop_sorted_coordinates, pc, ps, flag_sigma):
@@ -113,7 +118,7 @@ class CMAES(Algorithm):
 
         self.plot_population()
         best_point = self.sel_best()
-        # print(best_point.value)
+        print(best_point.value)
 
         # SORT BY FITNESS AND GET A COORDINATE MATRIX
         pop_sorted = self.sort_by_fitness(self.population)
@@ -163,13 +168,15 @@ class CMAES(Algorithm):
                 if self.time_eval:
                     payload = self.evaluate_single_iteration_with_time(
                         C, C_fact, pc, ps, prev_best)
-                    C, C_fact, pc, ps, prev_best = payload['data']
+                    C, C_fact, pc, ps, best = payload['data']
                     mean_time += payload['time']
                 else:
-                    C, C_fact, pc, ps, prev_best = self.single_iteration(
+                    C, C_fact, pc, ps, best = self.single_iteration(
                         C, C_fact, pc, ps, prev_best)
             except ArithmeticError:
                 break
+            if prev_best.value >= best.value:
+                prev_best = best
 
         if mean_time is not None:
             mean_time = mean_time/self.iterations
