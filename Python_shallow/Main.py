@@ -29,8 +29,9 @@ def optimize(objective_function, problem_dimention, constraints=None, algorithm=
 
 if __name__ == "__main__":
     import TargetFunctions
+
     parameters = {'m': (1, 1)}
     res = optimize(objective_function=TargetFunctions.sphere,
                    problem_dimention=2, plot_data=True, parameter_dict=parameters,
-                   algorithm='de', time_eval=False, max_iter=200, constraints=[(-0.5, 0.5), (-0.5, 0.5)], constraint_handle='projection')
+                   algorithm='cmaes', time_eval=False, max_iter=200, constraints=[(-10, 1), (-10, 1)], constraint_handle='reflection')
     print(res, res.best_point.value)

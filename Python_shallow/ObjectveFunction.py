@@ -50,18 +50,19 @@ class ObjectiveFunction:
 
     def repair_point(self, point):
         assert self.bounds is not None, 'No bounds specified!'
-        breach_info = self._check_bounds(point)
-        for bi in breach_info:
-            coordinate_index, bound_index = bi
-            broken_coordinate = point.coordinates[coordinate_index]
-            broken_bound = self.bounds[coordinate_index]
-            is_upper_bound = bool(bound_index)
+        while self._check_bounds(point):
+            breach_info = self._check_bounds(point)
+            for bi in breach_info:
+                coordinate_index, bound_index = bi
+                broken_coordinate = point.coordinates[coordinate_index]
+                broken_bound = self.bounds[coordinate_index]
+                is_upper_bound = bool(bound_index)
 
-            new_coordinate = self.repair_method(
-                broken_coordinate, broken_bound, is_upper_bound)
-            point.coordinates[coordinate_index] = new_coordinate
-        if breach_info:
-            point.value = self.eval(point.coordinates)
+                new_coordinate = self.repair_method(
+                    broken_coordinate, broken_bound, is_upper_bound)
+                point.coordinates[coordinate_index] = new_coordinate
+            if breach_info:
+                point.value = self.eval(point.coordinates)
         return point
 
     def repair_points(self, points):
