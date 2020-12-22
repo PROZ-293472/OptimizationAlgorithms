@@ -29,6 +29,7 @@ def optimize(objective_function, problem_dimension, constraints=None, algorithm=
 
 if __name__ == "__main__":
     import TargetFunctions
+
     parameters = {'m': (1, 1)}
     # c=[(-0.5, 0.5), (-0.5, 0.5)]
     c = None
