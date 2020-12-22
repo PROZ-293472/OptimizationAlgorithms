@@ -1,0 +1,32 @@
+Line #    Mem usage    Increment  Occurences   Line Contents
+============================================================
+    46     70.2 MiB     70.2 MiB           1       @profile
+    47                                             def single_iteration(self):
+    48                                                 # print(self.sel_best().value)
+    49     70.2 MiB      0.0 MiB           1           self.plot_population()
+    50
+    51     70.2 MiB      0.0 MiB           1           next_population = self.population
+    52     72.2 MiB    -91.4 MiB          51           for i in range(0, np.size(self.population, axis=0)):
+    53
+    54                                                     # SELECTION - generates a random distinct 3 indexes from <0,mi> and picks corresponding points
+    55     72.2 MiB    -89.6 MiB          50               indexes = np.random.choice(
+    56     72.2 MiB    -89.6 MiB          50                   np.arange(self.population.shape[0]), 3, replace=False)
+    57     72.2 MiB    -89.6 MiB          50               r = self.population[indexes[0]]
+    58     72.2 MiB    -89.6 MiB          50               d_e = np.array([self.population[indexes[1]],
+    59     72.2 MiB    -89.6 MiB          50                               self.population[indexes[2]]])
+    60
+    61                                                     # MUTATION and CROSSOVER
+    62     72.2 MiB    -89.6 MiB          50               M = r.coordinates + self.f * \
+    63     72.2 MiB    -91.1 MiB          50                   (d_e[1].coordinates - d_e[0].coordinates)
+    64     72.2 MiB    -91.1 MiB          50               O = Point(self.crossover(r.coordinates, M))
+    65     72.2 MiB    -91.1 MiB          50               O = self.objective_fun.repair_point(O)
+    66     72.2 MiB    -90.6 MiB          50               O.update(self.objective_fun)
+    67
+    68     72.2 MiB    -89.4 MiB          50               self.H = np.append(self.H, O.coordinates)
+    69
+    70     72.2 MiB    -91.4 MiB          50               next_population[i] = self.tournament(self.population[i], O)
+    71
+    72     70.4 MiB     -1.8 MiB           1           prev_best = self.sel_best()
+    73     70.4 MiB      0.0 MiB           1           self.population = next_population
+    74     70.4 MiB      0.0 MiB           1           self.iterations += 1
+    75     70.4 MiB      0.0 MiB           1           return prev_best

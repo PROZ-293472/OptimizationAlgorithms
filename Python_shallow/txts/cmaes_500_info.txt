@@ -1,0 +1,36 @@
+Line #    Mem usage    Increment  Occurences   Line Contents
+============================================================
+   117     75.2 MiB     75.2 MiB           1       @profile
+   118                                             def single_iteration(self, C, C_fact, pc, ps, prev_best):
+   119                                                 # GENERATE NEW POPULATION
+   120     75.7 MiB      0.5 MiB           1           self.population = self.generate_population(C)
+   121
+   122     75.7 MiB      0.0 MiB           1           self.plot_population()
+   123     75.7 MiB      0.0 MiB           1           best_point = self.sel_best()
+   124                                                 # print(best_point.value)
+   125
+   126                                                 # SORT BY FITNESS AND GET A COORDINATE MATRIX
+   127     75.7 MiB      0.0 MiB           1           pop_sorted = self.sort_by_fitness(self.population)
+   128     75.7 MiB      0.0 MiB           1           pop_sorted_coordinates = np.array(
+   129     75.7 MiB      0.0 MiB          53               [p.coordinates for p in pop_sorted])
+   130
+   131                                                 # GET NEW MEAN OF POPULATION
+   132     75.7 MiB      0.0 MiB           1           new_m = pop_sorted_coordinates.T[:, 0:self.mu-1] @ self.weights
+   133
+   134                                                 # UPDATE EVOLUTION PATHS
+   135     75.7 MiB      0.0 MiB           1           ps = (1-self.cs)*ps + math.sqrt(self.cs*(2-self.cs) *
+   136     75.7 MiB      0.0 MiB           1                                           self.mu_w) * C_fact @ (new_m-self.m) / self.sigma
+   137                                                 HIGH_SIGMA = np.linalg.norm(
+   138     75.7 MiB      0.0 MiB           1               ps)/math.sqrt(1-(1-self.cs)**(2*self.iterations/self.lbd))/self.chiN < 1.4 + 2/(self.point_dim+1)
+   139     75.7 MiB      0.0 MiB           1           pc = (1-self.cc)*pc + HIGH_SIGMA * math.sqrt(self.cc *
+   140     75.7 MiB      0.0 MiB           1                                                        (2-self.cc)*self.mu_w) * (new_m-self.m) / self.sigma
+   141
+   142                                                 # UPDATE COVARIANCE MATRIX
+   143     75.7 MiB      0.0 MiB           1           C, C_fact = self.update_cov_matrix(
+   144     81.4 MiB      5.8 MiB           1               C, pop_sorted_coordinates, pc, ps, HIGH_SIGMA)
+   145
+   146                                                 # ASSIGN NEW VALUES TO SOME PARAMETERS
+   147     81.4 MiB      0.0 MiB           1           self.m = new_m
+   148     81.4 MiB      0.0 MiB           1           prev_best = best_point
+   149     81.4 MiB      0.0 MiB           1           self.iterations += 1
+   150     81.4 MiB      0.0 MiB           1           return C, C_fact, pc, ps, prev_best

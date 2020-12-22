@@ -7,8 +7,7 @@ class ObjectiveFunction:
         self.fun = fun
         self.dim = dim
         # 2D array. bounds[i][1] contains upper bound, bounds[i][0] - lower
-        if bounds:
-            self.bounds = bounds
+        self.bounds = bounds
 
         repair_methods = {
             'wrapping': ObjectiveFunction._wrap,
@@ -18,8 +17,10 @@ class ObjectiveFunction:
         if repair_method:
             self.repair_method = repair_methods[repair_method]
 
-        assert (self.repair_method and self.bounds) or (
-            not self.repair_method and not self.bounds), 'Both bounds and repair method must be specified'
+        if self.bounds:
+            assert self.repair_method,  'If bounds are given, please specify repair method'
+        # assert (self.repair_method and self.bounds) or (
+        #     not self.repair_method and not self.bounds), 'Both bounds and repair method must be specified'
 
     def eval(self, x):
         # x - vector

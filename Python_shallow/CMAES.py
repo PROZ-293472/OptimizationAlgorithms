@@ -5,6 +5,8 @@ import numpy.matlib as matlib
 from Algorithm import Algorithm
 from Point import Point
 
+from memory_profiler import profile
+
 
 class CMAES(Algorithm):
 
@@ -76,10 +78,11 @@ class CMAES(Algorithm):
             [Point(coordinates=i, objective_fun=self.objective_fun) for i in generated_pop])
         if self.objective_fun.bounds:
             points_repaired = self.objective_fun.repair_points(points)
+            return points_repaired
+        return points
         # print(points == points_repaired)
         # print(len(points))
         # print(len(points_repaired))
-        return points_repaired
 
     def sort_by_fitness(self, population):
         fitnesses = np.array([p.value for p in population])
@@ -112,13 +115,14 @@ class CMAES(Algorithm):
             C_fact = np.eye(self.point_dim)
         return C, C_fact
 
+    # @profile
     def single_iteration(self, C, C_fact, pc, ps, prev_best):
         # GENERATE NEW POPULATION
         self.population = self.generate_population(C)
 
         self.plot_population()
         best_point = self.sel_best()
-        print(best_point.value)
+        # print(best_point.value)
 
         # SORT BY FITNESS AND GET A COORDINATE MATRIX
         pop_sorted = self.sort_by_fitness(self.population)

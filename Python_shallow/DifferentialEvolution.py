@@ -2,6 +2,7 @@ from Algorithm import Algorithm
 import numpy as np
 from numpy.random import random
 import matplotlib.pyplot as plt
+from memory_profiler import profile
 
 from Point import Point
 
@@ -42,8 +43,9 @@ class DifferentialEvolution(Algorithm):
             else:
                 return y
 
+    @profile
     def single_iteration(self):
-        print(self.sel_best().value)
+        # print(self.sel_best().value)
         self.plot_population()
 
         next_population = self.population
@@ -60,7 +62,8 @@ class DifferentialEvolution(Algorithm):
             M = r.coordinates + self.f * \
                 (d_e[1].coordinates - d_e[0].coordinates)
             O = Point(self.crossover(r.coordinates, M))
-            O = self.objective_fun.repair_point(O)
+            if self.objective_fun.bounds:
+                O = self.objective_fun.repair_point(O)
             O.update(self.objective_fun)
 
             self.H = np.append(self.H, O.coordinates)

@@ -3,6 +3,7 @@ import numpy as np
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 from collections import namedtuple
+from memory_profiler import profile
 
 from General import EndConditions as ec
 from General import Setup
@@ -85,6 +86,8 @@ class Algorithm(ABC):
 
         if self.objective_fun.bounds:
             self.population = self.objective_fun.repair_points(raw_population)
+        else:
+            self.population = raw_population
 
     def sel_best(self):
         # create an array of objective function values
@@ -133,6 +136,7 @@ class Algorithm(ABC):
         return {'data': out, 'time': time.time() - start_time}
 
     @abstractmethod
+    @profile
     def single_iteration(self):
         pass
 

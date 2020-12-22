@@ -69,7 +69,12 @@ CMAES <- setRefClass(
         generate_population = function(C){
             generated_pop <- m + sigma*MASS::mvrnorm(lambda, mu = numeric(point_dim), Sigma = C)
             fitness <- to_vec(for(i in 1:dim(generated_pop)[1]) + objective_fun$evaluate(generated_pop[i,]))
-            population<<-data.frame(generated_pop, fitness)
+            population_raw<-data.frame(generated_pop, fitness)
+            population<<-objective_fun$repair_population(population_raw)
+
+            # # DEBUG !
+            # plot(population[,1], population[,2], pch = 19)
+            # Sys.sleep(2)
         },
 
         sort_by_fitness = function() {
