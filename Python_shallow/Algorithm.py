@@ -12,9 +12,9 @@ from Point import Point
 
 class Algorithm(ABC):
     Result = namedtuple(
-        'Result', ['best_point', 'end_reason', 'mean_iteration_time'])
+        'Result', ['best_point', 'end_reason', 'mean_iteration_time', 'iteration_num', 'times_list'])
 
-    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False, max_iter=ec.MAX_ITER):
+    def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False, max_iter=ec.MAX_ITER, tolerance=ec.TOLERANCE):
         super().__init__()
         self.objective_fun = objective_fun  # FUNCTOR
 
@@ -43,7 +43,9 @@ class Algorithm(ABC):
         self.eval_time = -1
         self.iterations = 0  # INT
         self.max_iter = max_iter
+        self.tolerance = tolerance
         self.end_reason = None  # STRING
+        self.time_eval = time_eval
 
         # for plotting purposes
         if plot_data:
@@ -101,7 +103,9 @@ class Algorithm(ABC):
     def check_end_cond(self, prev_best):
         end_conditions = ec.check_end_conditions(iteration=self.iterations,
                                                  vec1=prev_best, vec2=self.sel_best(),
-                                                 obj_fun=self.objective_fun, max_iter=self.max_iter)
+                                                 obj_fun=self.objective_fun,
+                                                 max_iter=self.max_iter,
+                                                 tol=self.tolerance)
 
         if self.iterations != 0 and any(end_conditions.values()):
             reason = next((i for i, j in enumerate(

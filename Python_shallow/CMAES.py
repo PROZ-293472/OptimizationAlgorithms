@@ -166,7 +166,7 @@ class CMAES(Algorithm):
         prev_best = self.sel_best()
 
         mean_time = 0 if self.time_eval else None
-
+        times_list = []
         while not self.check_end_cond(prev_best=prev_best):
             try:
                 if self.time_eval:
@@ -174,6 +174,7 @@ class CMAES(Algorithm):
                         C, C_fact, pc, ps, prev_best)
                     C, C_fact, pc, ps, best = payload['data']
                     mean_time += payload['time']
+                    times_list.append(payload['time'])
                 else:
                     C, C_fact, pc, ps, best = self.single_iteration(
                         C, C_fact, pc, ps, prev_best)
@@ -184,4 +185,4 @@ class CMAES(Algorithm):
 
         if mean_time is not None:
             mean_time = mean_time/self.iterations
-        return Algorithm.Result(best_point=prev_best, end_reason=self.end_reason, mean_iteration_time=mean_time)
+        return Algorithm.Result(best_point=self.sel_best(), end_reason=self.end_reason, mean_iteration_time=mean_time, iteration_num=self.iterations, times_list=times_list)

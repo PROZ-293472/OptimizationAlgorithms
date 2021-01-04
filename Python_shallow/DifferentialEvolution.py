@@ -43,7 +43,7 @@ class DifferentialEvolution(Algorithm):
             else:
                 return y
 
-    @profile
+    # @profile
     def single_iteration(self):
         # print(self.sel_best().value)
         self.plot_population()
@@ -66,7 +66,7 @@ class DifferentialEvolution(Algorithm):
                 O = self.objective_fun.repair_point(O)
             O.update(self.objective_fun)
 
-            self.H = np.append(self.H, O.coordinates)
+            # self.H = np.append(self.H, O.coordinates)
 
             next_population[i] = self.tournament(self.population[i], O)
 
@@ -83,14 +83,17 @@ class DifferentialEvolution(Algorithm):
 
         mean_time = 0 if self.time_eval else None
         # MAIN LOOP
+        times_list = []
         while not self.check_end_cond(prev_best):
             if self.time_eval:
                 payload = self.evaluate_single_iteration_with_time()
                 prev_best = payload['data']
                 mean_time += payload['time']
+                times_list.append(payload['time'])
             else:
                 prev_best = self.single_iteration()
 
         if mean_time is not None:
             mean_time = mean_time/self.iterations
-        return Algorithm.Result(best_point=prev_best, end_reason=self.end_reason, mean_iteration_time=mean_time)
+
+        return Algorithm.Result(best_point=self.sel_best(), end_reason=self.end_reason, mean_iteration_time=mean_time, iteration_num=self.iterations, times_list=times_list)

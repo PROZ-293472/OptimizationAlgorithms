@@ -24,5 +24,5 @@ def schwefel(point):
     return sum([sum(point[:i])**2 for i in range(len(point))])
 
 
-def rosenrock(point):
+def rosenbrock(point):
     return sum([100*(point[i]**2 - point[i+1])**2 + (point[i] - 1)**2 for i in range(len(point)-1)])

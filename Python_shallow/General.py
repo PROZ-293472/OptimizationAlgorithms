@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import math
 
 
 class Setup:
@@ -23,8 +24,8 @@ class Setup:
 
 class EndConditions:
 
-    MAX_ITER = 400
-    TOL_X = 0.0000001
+    MAX_ITER = 10e6
+    TOLERANCE = 0
     TOL_FUN = 0.0000001
 
     @staticmethod
@@ -36,14 +37,14 @@ class EndConditions:
         return False
 
     @staticmethod
-    def tol_x(vec1, vec2):
-        return False
+    def tol(vec, tolerance):
+        return vec.value <= tolerance
 
     @staticmethod
-    def check_end_conditions(iteration, vec1, vec2, obj_fun, max_iter):
+    def check_end_conditions(iteration, vec1, vec2, obj_fun, max_iter, tol):
         return {'max_iter': EndConditions.max_iter(iteration, max_iter),
                 'tolfun': EndConditions.tol_fun(vec1=vec1, vec2=vec2, objective_fun=obj_fun),
-                'tolx': EndConditions.tol_x(vec1=vec1, vec2=vec2)}
+                'tolerance': EndConditions.tol(vec=vec2, tolerance=tol)}
 
 
 class Selections:

@@ -1,12 +1,14 @@
 from CMAES import CMAES
 from DifferentialEvolution import DifferentialEvolution
+from DES import DES
 from ObjectveFunction import ObjectiveFunction
 
 
-def optimize(objective_function, problem_dimension, constraints=None, algorithm='cmaes', constraint_handle=None, parameter_dict=None, plot_data=False, time_eval=False, max_iter=None):
+def optimize(objective_function, problem_dimension, constraints=None, algorithm='cmaes', constraint_handle=None, parameter_dict=None, plot_data=False, time_eval=False, max_iter=None, tolerance=None):
     algorithms = {
         'cmaes': CMAES(),
-        'de': DifferentialEvolution()
+        'de': DifferentialEvolution(),
+        'des': DES()
     }
 
     alg = algorithms[algorithm]
@@ -23,6 +25,9 @@ def optimize(objective_function, problem_dimension, constraints=None, algorithm=
 
     if max_iter:
         alg.max_iter = max_iter
+
+    if tolerance:
+        alg.tolerance = tolerance
     res = alg.run()
     return res
 
@@ -30,10 +35,35 @@ def optimize(objective_function, problem_dimension, constraints=None, algorithm=
 if __name__ == "__main__":
     import TargetFunctions
 
-    parameters = {'m': (1, 1)}
-    # c=[(-0.5, 0.5), (-0.5, 0.5)]
+    # parameters = {'m': (100, 100)}
+    parameters = None
+    # c = [(-0.5, 0.5), (-0.5, 0.5)]
     c = None
-    res = optimize(objective_function=TargetFunctions.sphere,
-                   problem_dimension=2, plot_data=True, parameter_dict=parameters,
-                   algorithm='de', time_eval=False, max_iter=200, constraints=c, constraint_handle='projection')
-    print(res, res.best_point.value)
+    # algorithm = 'des'
+    for algorithm in ['cmaes']:
+        res_list = []
+        reps = 30
+        for i in range(reps):
+            print(i)
+            res = optimize(objective_function=TargetFunctions.sphere,
+                           problem_dimension=70, plot_data=False, parameter_dict=parameters,
+                           algorithm=algorithm, time_eval=True, max_iter=1000, constraints=c, constraint_handle='projection')
+            # print(res, res.best_point.value)
+            res_list.append(res)
+
+        iter_times = [0 for _ in range(1000)]
+        for r in res_list:
+            iter_times = [sum(x) for x in zip(iter_times, r.times_list)]
+        iter_times = [i/reps for i in iter_times]
+
+        import pickle
+        with open(f'Python_shallow\\pickles\\time_list_{algorithm}.pkl', 'wb') as f:
+            pickle.dump(iter_times, f)
+
+        import matplotlib.pyplot as plt
+        # plotting tim by dim
+        plt.xlabel('Iteracja')
+        plt.ylabel('średni czas wykonania [s]')
+        plt.plot(iter_times)
+        plt.grid()
+        # plt.savefig(f'Python_shallow\\figs\\iter_time_{algorithm}.png')

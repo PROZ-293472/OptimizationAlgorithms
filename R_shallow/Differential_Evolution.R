@@ -11,7 +11,8 @@ DifferentialEvolution <- setRefClass(
     fields = list(
         cr = "numeric",
         f = "numeric",
-        H = "data.frame" 
+        H = "data.frame",
+        init_mean = "numeric"
     ),
     methods = list(
         init_default_parameters = function(){
@@ -46,11 +47,32 @@ DifferentialEvolution <- setRefClass(
 
         run = function() {
             init_default_parameters()
-            gen_random_population()
+            if(is_empty(init_mean)){
+                gen_random_population()
+            }else{
+                gen_random_population(mean=init_mean)
+            }
+            
+
+            if(point_dim == 2){
+                LOG_POPS <- TRUE
+                first_pops <<- list(population) 
+            }else{
+                LOG_POPS <- FALSE
+            }
+
             H <<- population
             mi <- dim(population)[1]
+            mean_time <- 0
             iterations <<- 0
-            while(iterations < max_iter){
+            best_point <- sel_best()
+            times_vec <- c()
+            while(iterations < max_iter && objective_fun$evaluate(best_point) > tolerance){
+                start_time <- Sys.time()
+                if(LOG_POPS && iterations <20){
+                    first_pops <<- list.append(first_pops, population)
+                }
+
                 next_P <- population
                 for (i in 1:mi){
                     indexes <- sample(1:mi, 3, replace=F)
@@ -66,15 +88,23 @@ DifferentialEvolution <- setRefClass(
 #                     print('------------')
 #                     print(objective_fun$evaluate(cross))
                     O <- data.frame(t(cross), fitness=objective_fun$evaluate(cross))
-                    append(H,O)
+                    # print(O)
+                    # append(H,O)
                 
                     next_P[i,] <- tournanemt(population[i,], O)
                 }
                 population <<- next_P
-                print(sel_best())
-                print(objective_fun$evaluate(sel_best()))
+                # print(dim(population))
+                best_point <- sel_best()
+                # print(sel_best())
+                # print(objective_fun$evaluate(sel_best()))
+                times_vec[iterations] <- (Sys.time() - start_time)
+                # mean_time <- times_vec[iterations]
                 iterations <<- iterations+1
             }
+            mean_time <- sum(times_vec)/iterations
+            mean_time <- as.numeric(mean_time, units="secs")
+            return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time, iterations=iterations, times_list=times_vec))
         }
     )
 )

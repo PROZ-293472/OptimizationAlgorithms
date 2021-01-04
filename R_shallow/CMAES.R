@@ -1,5 +1,6 @@
 library(pracma)
 library(comprehenr)
+library(rlist)
 source("Classes.R")
 
 is_empty <- function(x) return(length(x) ==0 )
@@ -70,8 +71,11 @@ CMAES <- setRefClass(
             generated_pop <- m + sigma*MASS::mvrnorm(lambda, mu = numeric(point_dim), Sigma = C)
             fitness <- to_vec(for(i in 1:dim(generated_pop)[1]) + objective_fun$evaluate(generated_pop[i,]))
             population_raw<-data.frame(generated_pop, fitness)
-            population<<-objective_fun$repair_population(population_raw)
-
+            if(!is_empty(objective_fun$bounds)){
+                population<<-objective_fun$repair_population(population_raw)
+            }else{
+                population <<- population_raw
+            }
             # # DEBUG !
             # plot(population[,1], population[,2], pch = 19)
             # Sys.sleep(2)
@@ -83,7 +87,15 @@ CMAES <- setRefClass(
 
         run = function() {
             init_default_parameters()
+
+            if(point_dim == 2){
+                LOG_POPS <- TRUE
+                first_pops <<- list(population) 
+            }else{
+                LOG_POPS <- FALSE
+            }
             iterations <<- 0
+
             pc <- numeric(point_dim)
             ps <- numeric(point_dim)
             B <- eye(point_dim)                       
@@ -93,10 +105,15 @@ CMAES <- setRefClass(
             C <- eye(point_dim)
             invsqrtC <- eye(point_dim)
             mean_time <- 0
-            while(iterations < max_iter){
+            times_vec <- c()
+            best_point <- sel_best()
+            while(iterations < max_iter && objective_fun$evaluate(best_point) > tolerance){
                 start_time <- Sys.time()
 
                 generate_population(C)
+                if(LOG_POPS && iterations <20){
+                    first_pops <<- list.append(first_pops, population)
+                }
                 pop_sorted <- sort_by_fitness()
 #                 print(pop_sorted)
                 pop_sorted <- as.matrix(pop_sorted[-length(pop_sorted)])
@@ -108,7 +125,7 @@ CMAES <- setRefClass(
                 C <- (1-c1-cmu) * C + c1*(pc%*%t(pc) + (1-HIGH_SIGMA)*cc*(2-cc)*C) + cmu * artmp %*% diag(weights) %*% t(artmp)
                 sigma <<- sigma * exp((cs/d_s)*(norm(ps)/chiN - 1))
                 
-                best_point <- objective_fun$evaluate(sel_best())
+                best_point <- sel_best()
                 # print(best_point)
 #                 print(sel_best())
                     
@@ -127,11 +144,12 @@ CMAES <- setRefClass(
                 m <<- c(new_m)
                 iterations <<- iterations+1
 
-                mean_time <- mean_time + (Sys.time() - start_time)
+                times_vec[iterations] <- (Sys.time() - start_time)
+                # mean_time <- times_vec[iterations]
             }
-            mean_time <- mean_time/iterations
+            mean_time <- sum(times_vec)/iterations
             mean_time <- as.numeric(mean_time, units="secs")
-            return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time))
+            return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time, iterations=iterations, times_list=times_vec))
         }
     )
 )
