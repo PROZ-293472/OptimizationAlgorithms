@@ -2,15 +2,24 @@ import math
 
 
 def sphere(point):
-    return sum([x**2 for x in point])
+    s = 0.0
+    for x in point:
+        s += x**2
+    return s
 
 
 def elliptic(point):
-    return sum([10**((i-1)/(len(point)-1)) * x**2 for i, x in enumerate(point)])
+    s = 0.0
+    for i, x in enumerate(point):
+        s += 10**((i-1)/(len(point)-1)) * x**2
+    return s
 
 
 def rastrigin(point):
-    return sum([x**2 - 10*math.cos(2*math.pi*x) + 10 for x in point])
+    s = 0.0
+    for x in point:
+        s += x**2 - 10*math.cos(2*math.pi*x) + 10
+    return s
 
 
 def ackley(point):

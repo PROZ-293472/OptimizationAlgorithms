@@ -28,11 +28,11 @@ DES <- setRefClass(
             if(is_empty(defaultMean)){
                 defaultMean <<- numeric(objective_fun$dim)
             }
-            if(is_empty(population)){
-                population <<- gen_random_population()
-            }
             if(is_empty(lambda)){
-                lambda <<- dim(population)[1]
+                lambda <<- 4*objective_fun$dim
+            }
+            if(is_empty(population)){
+                population <<- gen_random_population(size=lambda)
             }
             if(is_empty(mu)){
                 mu <<- floor(lambda/2)
@@ -89,15 +89,6 @@ DES <- setRefClass(
             return(selected_points)
         },
 
-        # sampleFromHistory = function(history,historySample,lambda){
-        # # ret <- c()
-        # # for(i in 1:lambda)
-        # #     # ret <- c(ret,sample(1:ncol(history[[historySample[i]]]), 1))
-        # #     ret <- c(ret,sample(1:mu, 1))
-        # ret <- sample(1:mu,lambda,T)
-        # return(ret)
-        # },
-
         run = function(){
             # default parameter init
             init_default_parameters()
@@ -109,27 +100,17 @@ DES <- setRefClass(
                 LOG_POPS <- FALSE
             }
 
-            tol <- 10e-30
-            # dynamic parameter init
-            # steps       <- ringbuffer(size = (pathLength*objective_fun$dim))   
             dMean       <- array(0, dim=c(objective_fun$dim,histSize))
-            # FtHistory   <- array(0, histSize)                                 
             pc       <- array(0, dim=c(objective_fun$dim,histSize))
-
-            # history init
             histHead    <- 0
             history     <- list()
 
-            # population <<- gen_random_population()
             population_mat <- population_2_matrix(population)
             best_point <- sel_best()
 
             oldMean         <- numeric(objective_fun$dim)
             newMean         <- defaultMean
   
-            # Store population and selection means
-            # print(population_mat)
-            # print(weightsPop)
             popMean         <- drop(population_mat %*% weightsPop)
             muMean          <- newMean
 
@@ -138,13 +119,16 @@ DES <- setRefClass(
             x1sample  <- numeric(lambda)
             x2sample  <- numeric(lambda)
 
-            # chiN      <- (sqrt(2)*gamma((objective_fun$dim+1)/2)/gamma(objective_fun$dim/2))
             histNorm  <- 1/sqrt(2)
 
             mean_time <- 0
             iterations  <<- 0
             times_vec <- c()
+            max_mem <- 0
             while(iterations < max_iter && objective_fun$evaluate(best_point) > tolerance){
+                if(memory.size()>max_mem){
+                    max_mem <- memory.size()
+                }
                 start_time <- Sys.time()
                 if(LOG_POPS && iterations <20){
                     first_pops <<- list.append(first_pops, population)
@@ -169,22 +153,16 @@ DES <- setRefClass(
                 dMean[,histHead] <- (muMean - popMean) / Ft
 
                 step <- (newMean - oldMean) / Ft
-                # ## Update Ft
-                # FtHistory[histHead] = Ft
 
                 if(histHead==1){
                     pc[,histHead] = (1 - cp)* numeric(objective_fun$dim)/sqrt(objective_fun$dim) + sqrt(mu * cp * (2-cp))* step
-                # pc[,histHead] = (1 - cp)* rep(0.0, objective_fun$dim)/sqrt(objective_fun$dim) + sqrt(mu * cp * (2-cp))* step
                 }else{
                 pc[,histHead] = (1 - cp)* pc[,histHead-1] + sqrt(mu * cp * (2-cp))* step
                 }
-                ## Sample from history with uniform distribution
                 limit <- min(iterations, histSize)
                 historySample <- sample(1:limit,lambda, T)
                 historySample2 <- sample(1:limit,lambda, T)
 
-                # x1sample <- sampleFromHistory(history,historySample,lambda)
-                # x2sample <- sampleFromHistory(history,historySample,lambda)
                 x1sample <- sample(1:mu, lambda, T)
                 x2sample <- sample(1:mu, lambda, T)
 
@@ -197,19 +175,16 @@ DES <- setRefClass(
                 }
 
                 ## New population
-                # population_mat <- newMean + Ft * diffs + tol*rnorm(diffs)/chiN
                 population_mat <- newMean + Ft * diffs
-                # population_mat <- deleteInfsNaNs(population_mat)
 
                 population <<- matrix_2_population(population_mat)
                 best_point <- sel_best()
                 popMean <- drop(population_mat %*% weightsPop)
                 times_vec[iterations] <- (Sys.time() - start_time)
-                # mean_time <- times_vec[iterations]
             }
         mean_time <- sum(times_vec)/iterations
         mean_time <- as.numeric(mean_time, units="secs")
-        return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time, iterations=iterations, times_list=times_vec))        
+        return(new('Result', best_point=best_point, end_reason='max_iter',mean_iteration_time=mean_time, iterations=iterations))        
     }
     )
 ) 

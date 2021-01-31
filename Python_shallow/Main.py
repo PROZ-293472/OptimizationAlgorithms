@@ -2,8 +2,10 @@ from CMAES import CMAES
 from DifferentialEvolution import DifferentialEvolution
 from DES import DES
 from ObjectveFunction import ObjectiveFunction
+from memory_profiler import profile
 
 
+# @profile
 def optimize(objective_function, problem_dimension, constraints=None, algorithm='cmaes', constraint_handle=None, parameter_dict=None, plot_data=False, time_eval=False, max_iter=None, tolerance=None):
     algorithms = {
         'cmaes': CMAES(),
@@ -35,12 +37,9 @@ def optimize(objective_function, problem_dimension, constraints=None, algorithm=
 if __name__ == "__main__":
     import TargetFunctions
 
-    # parameters = {'m': (100, 100)}
-    parameters = None
-    # c = [(-0.5, 0.5), (-0.5, 0.5)]
+    parameters = {'lbd': 100}
     c = None
-    # algorithm = 'des'
-    for algorithm in ['cmaes']:
+    for algorithm in ['de']:
         res_list = []
         reps = 30
         for i in range(reps):
@@ -48,8 +47,10 @@ if __name__ == "__main__":
             res = optimize(objective_function=TargetFunctions.sphere,
                            problem_dimension=70, plot_data=False, parameter_dict=parameters,
                            algorithm=algorithm, time_eval=True, max_iter=1000, constraints=c, constraint_handle='projection')
-            # print(res, res.best_point.value)
+
             res_list.append(res)
+            print(res.best_point.coordinates,
+                  res.best_point.value, res.iteration_num)
 
         iter_times = [0 for _ in range(1000)]
         for r in res_list:
@@ -61,9 +62,7 @@ if __name__ == "__main__":
             pickle.dump(iter_times, f)
 
         import matplotlib.pyplot as plt
-        # plotting tim by dim
         plt.xlabel('Iteracja')
         plt.ylabel('średni czas wykonania [s]')
         plt.plot(iter_times)
         plt.grid()
-        # plt.savefig(f'Python_shallow\\figs\\iter_time_{algorithm}.png')

@@ -12,7 +12,7 @@ from Point import Point
 
 class Algorithm(ABC):
     Result = namedtuple(
-        'Result', ['best_point', 'end_reason', 'mean_iteration_time', 'iteration_num', 'times_list'])
+        'Result', ['best_point', 'end_reason', 'mean_iteration_time', 'iteration_num'])
 
     def __init__(self, objective_fun=None, start_pop=None, population_filename=None, plot_data=False, time_eval=False, max_iter=ec.MAX_ITER, tolerance=ec.TOLERANCE):
         super().__init__()

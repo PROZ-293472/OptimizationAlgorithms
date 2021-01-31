@@ -118,7 +118,6 @@ Algorithm <- setRefClass("Algorithm",
             if(dim(min_point)[1] > 1){
                 min_point <- min_point[1,]
             }
-            # return(as.numeric(min_point[-length(min_point)]))
             return(min_point)
         },
         draw_first_pops = function(){
@@ -160,5 +159,4 @@ Algorithm <- setRefClass("Algorithm",
     )
 )
 
-# setClass("Result", slots=list(best_point="data.frame", end_reason="character", mean_iteration_time="numeric", iterations="numeric"))
-setClass("Result", slots=list(best_point="data.frame", end_reason="character", mean_iteration_time="numeric", iterations="numeric", times_list='numeric'))
+setClass("Result", slots=list(best_point="data.frame", end_reason="character", mean_iteration_time="numeric", iterations="numeric"))

@@ -6,11 +6,9 @@ class Point:
         if objective_fun:
             self.defined = True
             self.value = objective_fun.eval(self.coordinates)
-            # self.is_acceptable = objective_fun.check_bounds(self.coordinates)
         else:
             self.defined = False
 
     def update(self, objective_fun):
         if not self.defined:
             self.value = objective_fun.eval(self.coordinates)
-            # self.is_acceptable = objective_fun.check_bounds(self.coordinates)

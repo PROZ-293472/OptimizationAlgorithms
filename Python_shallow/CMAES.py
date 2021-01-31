@@ -46,7 +46,7 @@ class CMAES(Algorithm):
 
         weights = math.log(mu + 1/2) - \
             np.array([math.log(i)
-                      for i in range(1, self.mu)])  # initialized weights
+                      for i in range(1, self.mu+1)])  # initialized weights
         if not self.weights:
             self.weights = weights/np.sum(weights)  # weight normalised
 
@@ -80,9 +80,6 @@ class CMAES(Algorithm):
             points_repaired = self.objective_fun.repair_points(points)
             return points_repaired
         return points
-        # print(points == points_repaired)
-        # print(len(points))
-        # print(len(points_repaired))
 
     def sort_by_fitness(self, population):
         fitnesses = np.array([p.value for p in population])
@@ -90,18 +87,20 @@ class CMAES(Algorithm):
         pop_sorted = [population[i] for i in index_order]
         return pop_sorted
 
+    # @profile
     def update_cov_matrix(self, C, pop_sorted_coordinates, pc, ps, flag_sigma):
         artmp = (1/self.sigma) * \
-            (pop_sorted_coordinates.T[:, 0:self.mu-1] -
-             matlib.repmat(self.m, self.mu-1, 1).T)
+            (pop_sorted_coordinates.T[:, 0:self.mu] -
+             matlib.repmat(self.m, self.mu, 1).T)
+        print(artmp)
+        import time
+        time.sleep(10)
         try:
             C = (1-self.c1-self.cmu) * C + self.c1*(pc @ pc.T + (1-flag_sigma)*self.cc *
                                                     (2-self.cc)*C) + self.cmu * artmp @ np.diag(self.weights) @ artmp.T
-            self.sigma = self.sigma * \
-                math.exp((self.cs/self.d_s) *
-                         (np.linalg.norm(ps)/self.chiN - 1))
             C = np.triu(C) + np.triu(C, 1).T
             w, v = np.linalg.eig(C)
+
             temp = []
             for d in w:
                 if d < 0:
@@ -110,19 +109,18 @@ class CMAES(Algorithm):
                     temp.append(math.sqrt(d)**(-1))
             w = np.array(temp)
             C_fact = v @ np.diag(w) @ v.T
+
         except ZeroDivisionError:
             C = np.eye(self.point_dim)
             C_fact = np.eye(self.point_dim)
         return C, C_fact
 
-    # @profile
     def single_iteration(self, C, C_fact, pc, ps, prev_best):
         # GENERATE NEW POPULATION
         self.population = self.generate_population(C)
 
         self.plot_population()
         best_point = self.sel_best()
-        # print(best_point.value)
 
         # SORT BY FITNESS AND GET A COORDINATE MATRIX
         pop_sorted = self.sort_by_fitness(self.population)
@@ -130,7 +128,7 @@ class CMAES(Algorithm):
             [p.coordinates for p in pop_sorted])
 
         # GET NEW MEAN OF POPULATION
-        new_m = pop_sorted_coordinates.T[:, 0:self.mu-1] @ self.weights
+        new_m = pop_sorted_coordinates.T[:, 0:self.mu] @ self.weights
 
         # UPDATE EVOLUTION PATHS
         ps = (1-self.cs)*ps + math.sqrt(self.cs*(2-self.cs) *
@@ -139,7 +137,8 @@ class CMAES(Algorithm):
             ps)/math.sqrt(1-(1-self.cs)**(2*self.iterations/self.lbd))/self.chiN < 1.4 + 2/(self.point_dim+1)
         pc = (1-self.cc)*pc + HIGH_SIGMA * math.sqrt(self.cc *
                                                      (2-self.cc)*self.mu_w) * (new_m-self.m) / self.sigma
-
+        self.sigma = self.sigma * \
+            math.exp((self.cs/self.d_s) * (np.linalg.norm(ps)/self.chiN - 1))
         # UPDATE COVARIANCE MATRIX
         C, C_fact = self.update_cov_matrix(
             C, pop_sorted_coordinates, pc, ps, HIGH_SIGMA)
@@ -166,7 +165,6 @@ class CMAES(Algorithm):
         prev_best = self.sel_best()
 
         mean_time = 0 if self.time_eval else None
-        times_list = []
         while not self.check_end_cond(prev_best=prev_best):
             try:
                 if self.time_eval:
@@ -174,10 +172,10 @@ class CMAES(Algorithm):
                         C, C_fact, pc, ps, prev_best)
                     C, C_fact, pc, ps, best = payload['data']
                     mean_time += payload['time']
-                    times_list.append(payload['time'])
                 else:
                     C, C_fact, pc, ps, best = self.single_iteration(
                         C, C_fact, pc, ps, prev_best)
+                    print(best.value)
             except ArithmeticError:
                 break
             if prev_best.value >= best.value:
@@ -185,4 +183,4 @@ class CMAES(Algorithm):
 
         if mean_time is not None:
             mean_time = mean_time/self.iterations
-        return Algorithm.Result(best_point=self.sel_best(), end_reason=self.end_reason, mean_iteration_time=mean_time, iteration_num=self.iterations, times_list=times_list)
+        return Algorithm.Result(best_point=self.sel_best(), end_reason=self.end_reason, mean_iteration_time=mean_time, iteration_num=self.iterations)
